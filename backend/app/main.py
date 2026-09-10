@@ -10,7 +10,7 @@ from app.services.ml_service import train_risk_prediction_model
 from app.routes import (
     auth, users, departments, geofence, attendance,
     otp, corrections, leaves, predictions, admin, notifications,
-    prognosis, smart_pass, counseling_ai, ledger
+    prognosis, smart_pass, counseling_ai, ledger, chatbot
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -61,6 +61,7 @@ app.include_router(prognosis.router, prefix=settings.API_V1_STR)
 app.include_router(smart_pass.router, prefix=settings.API_V1_STR)
 app.include_router(counseling_ai.router, prefix=settings.API_V1_STR)
 app.include_router(ledger.router, prefix=settings.API_V1_STR)
+app.include_router(chatbot.router, prefix=settings.API_V1_STR)
 app.include_router(admin.router, prefix=settings.API_V1_STR)
 app.include_router(notifications.router, prefix=settings.API_V1_STR)
 

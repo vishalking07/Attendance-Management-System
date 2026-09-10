@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
+import AIChatbotDrawer from '../components/AIChatbotDrawer';
 
 // Pages
 import LoginPage from '../pages/auth/LoginPage';
@@ -52,6 +53,9 @@ const DashboardLayout = () => {
             <Outlet />
           </main>
         </div>
+
+        {/* Floating AI Chatbot Assistant */}
+        <AIChatbotDrawer />
       </div>
     </div>
   );
