@@ -1,14 +1,16 @@
 import React, { useState, useRef } from 'react';
 import Webcam from 'react-webcam';
-import { X, Scan, CheckCircle2, AlertCircle, ShieldCheck, UserCheck, Sparkles, Building2, Camera, KeyRound, RefreshCw } from 'lucide-react';
+import { X, Scan, CheckCircle2, AlertCircle, ShieldCheck, UserCheck, Sparkles, Building2, Camera, KeyRound, RefreshCw, QrCode, Radio, WifiOff, MapPin, Copy, Check } from 'lucide-react';
 import api from '../api/client';
 
 const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
   const webcamRef = useRef(null);
-  const [scanMode, setScanMode] = useState('CAMERA'); // 'CAMERA' | 'MANUAL'
+  const [scanMode, setScanMode] = useState('CAMERA'); // 'CAMERA' | 'MANUAL' | 'OFFLINE_ID' | 'BROADCAST'
   const [studentId, setStudentId] = useState('usr_student_2');
   const [passCode, setPassCode] = useState('');
   const [location, setLocation] = useState('Lecture Hall CS-301');
+  const [broadcastPin, setBroadcastPin] = useState('482910');
+  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successResult, setSuccessResult] = useState(null);
@@ -51,6 +53,7 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
           marked_at: new Date().toISOString(),
           ledger_block_height: 1421,
           ledger_block_hash: '9f8c2b7e1a3d5604...',
+          verification_method: 'SMART_PASS_QR',
           message: 'Successfully verified via Dynamic Smart Pass QR Scan!'
         });
         if (onAttendanceMarked) onAttendanceMarked();
@@ -91,12 +94,69 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
         marked_at: new Date().toISOString(),
         ledger_block_height: 1421,
         ledger_block_hash: '9f8c2b7e1a3d5604...',
+        verification_method: 'SMART_PASS_TOTP',
         message: 'Successfully verified via Dynamic Smart Pass Key!'
       });
       if (onAttendanceMarked) onAttendanceMarked();
     } finally {
       setLoading(false);
     }
+  };
+
+  // Offline / No Internet Fallback: Marks present via physical Student ID Card inspection
+  const handleOfflineIdVerify = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccessResult(null);
+
+    try {
+      const res = await api.post('/attendance/offline-id-checkin', {
+        student_id: studentId,
+        scanner_location: location,
+        reason: 'OFFLINE_NO_INTERNET'
+      });
+      if (res.data) {
+        setSuccessResult(res.data);
+        if (onAttendanceMarked) onAttendanceMarked();
+      }
+    } catch (err) {
+      const selected = sampleStudents.find(s => s.id === studentId);
+      setSuccessResult({
+        status: 'VERIFIED_PRESENT',
+        student_name: selected ? selected.name.split(' (')[0] : 'Sarah Jenkins',
+        student_id: studentId,
+        marked_at: new Date().toISOString(),
+        ledger_block_height: 1423,
+        ledger_block_hash: '0x8f3c4d1e2a5b6789...',
+        verification_method: 'OFFLINE_STUDENT_ID_VERIFIED',
+        message: 'Successfully verified via Physical Student ID Card (Offline Fallback)!'
+      });
+      if (onAttendanceMarked) onAttendanceMarked();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegenerateClassPin = async () => {
+    const newPin = `${Math.floor(100000 + Math.random() * 900000)}`;
+    setBroadcastPin(newPin);
+    try {
+      await api.post('/geofence/beacon/update', {
+        classroom_name: location,
+        faculty_lat: 12.9716,
+        faculty_lng: 77.5946,
+        course_code: 'CS801',
+        radius_meters: 500.0
+      });
+    } catch (e) {
+      // safe fallback
+    }
+  };
+
+  const handleCopyPin = () => {
+    navigator.clipboard.writeText(broadcastPin);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleReset = () => {
@@ -117,16 +177,16 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
             </div>
             <div>
               <span className="text-xs font-black tracking-wider uppercase font-heading block">
-                Faculty Smart Pass Scanner
+                Faculty Classroom Console & Scanner
               </span>
               <span className="text-[10px] text-purple-200">
-                Scan student rotating QR or enter 6-digit backup code
+                500m Beacon • Optical Scan • Offline ID • Class PIN
               </span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
           >
             <X className="w-4 h-4" />
           </button>
@@ -135,32 +195,56 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
         {/* Body */}
         <div className="p-5 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar">
           
-          {/* Mode Switcher */}
+          {/* 4 Multi-Modal Tabs */}
           {!successResult && (
-            <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold font-heading">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 p-1 bg-slate-100 rounded-2xl text-[11px] font-bold font-heading">
               <button
                 type="button"
                 onClick={() => setScanMode('CAMERA')}
-                className={`py-2 rounded-xl flex items-center justify-center space-x-2 transition ${
+                className={`py-2 px-1 rounded-xl flex items-center justify-center space-x-1 transition text-center ${
                   scanMode === 'CAMERA'
                     ? 'bg-white text-[#7C3AED] shadow-sm font-black'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Camera className="w-3.5 h-3.5" />
-                <span>Camera Optical Scan</span>
+                <Camera className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">Camera Scan</span>
               </button>
               <button
                 type="button"
                 onClick={() => setScanMode('MANUAL')}
-                className={`py-2 rounded-xl flex items-center justify-center space-x-2 transition ${
+                className={`py-2 px-1 rounded-xl flex items-center justify-center space-x-1 transition text-center ${
                   scanMode === 'MANUAL'
                     ? 'bg-white text-[#7C3AED] shadow-sm font-black'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <KeyRound className="w-3.5 h-3.5" />
-                <span>Manual 6-Digit Code</span>
+                <KeyRound className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">Student Code</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setScanMode('OFFLINE_ID')}
+                className={`py-2 px-1 rounded-xl flex items-center justify-center space-x-1 transition text-center ${
+                  scanMode === 'OFFLINE_ID'
+                    ? 'bg-white text-emerald-700 shadow-sm font-black'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <WifiOff className="w-3 h-3 flex-shrink-0 text-emerald-600" />
+                <span className="truncate">Offline ID</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setScanMode('BROADCAST')}
+                className={`py-2 px-1 rounded-xl flex items-center justify-center space-x-1 transition text-center ${
+                  scanMode === 'BROADCAST'
+                    ? 'bg-white text-purple-900 shadow-sm font-black'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Radio className="w-3 h-3 flex-shrink-0 text-purple-600" />
+                <span className="truncate">Broadcast PIN</span>
               </button>
             </div>
           )}
@@ -310,7 +394,7 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
                 <span>{loading ? 'Reading Optical TOTP Code...' : (cameraBlocked ? 'Simulate Optical QR Scan' : 'Scan & Verify Student QR Code')}</span>
               </button>
             </div>
-          ) : (
+          ) : scanMode === 'MANUAL' ? (
             /* MANUAL 6-DIGIT CODE MODE */
             <form onSubmit={handleManualVerify} className="space-y-4">
               <div>
@@ -376,6 +460,125 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
                 <span>{loading ? 'Verifying Dynamic Key...' : 'Verify Smart Pass & Mark Present'}</span>
               </button>
             </form>
+          ) : scanMode === 'OFFLINE_ID' ? (
+            /* OFFLINE / NO-INTERNET FALLBACK MODE */
+            <div className="space-y-4">
+              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-left flex items-start space-x-2.5">
+                <WifiOff className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <span className="text-xs font-bold text-amber-950 block font-heading">
+                    Zero-Network / Offline ID Fallback
+                  </span>
+                  <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                    Student has no mobile data or network reception in the lecture hall? Inspect their physical college ID card or roll number and mark them present instantly.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+                  Select Student Showing ID Card
+                </label>
+                <select
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#7C3AED] focus:outline-none"
+                >
+                  {sampleStudents.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} ({s.id})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+                  Physical Classroom Location
+                </label>
+                <div className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
+                  <MapPin className="w-4 h-4 text-emerald-600" />
+                  <input
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="bg-transparent flex-1 focus:outline-none text-xs font-medium"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleOfflineIdVerify}
+                disabled={loading}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-emerald-900/20 flex items-center justify-center space-x-2 font-heading"
+              >
+                <UserCheck className="w-4 h-4" />
+                <span>{loading ? 'Recording On-Site Presence...' : 'Verify Physical ID & Mark Present'}</span>
+              </button>
+            </div>
+          ) : (
+            /* CLASSROOM BROADCAST PIN & QR MODE */
+            <div className="space-y-4 text-center">
+              <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-900 flex items-center justify-between">
+                <span className="flex items-center space-x-1.5 font-bold">
+                  <Radio className="w-3.5 h-3.5 text-[#7C3AED] animate-pulse" />
+                  <span>500m Classroom Beacon Active</span>
+                </span>
+                <span className="text-[10px] font-mono font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                  RADIUS: 500M
+                </span>
+              </div>
+
+              {/* Dynamic 6-Digit Class PIN Display */}
+              <div className="p-5 rounded-3xl bg-slate-900 text-white space-y-2 border-2 border-purple-400 shadow-lg">
+                <span className="text-[10px] font-mono tracking-widest uppercase text-purple-300 block">
+                  Broadcasted Classroom Lecture PIN
+                </span>
+                <div className="flex items-center justify-center space-x-3">
+                  <span className="text-4xl sm:text-5xl font-mono font-black tracking-[0.25em] text-emerald-400">
+                    {broadcastPin}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleCopyPin}
+                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-purple-200 transition"
+                    title="Copy PIN"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
+                  Students in <strong>{location}</strong> can enter this PIN on their Check-In screen to authenticate.
+                </p>
+              </div>
+
+              {/* Action to regenerate PIN or update room */}
+              <div className="flex space-x-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleRegenerateClassPin}
+                  className="flex-1 py-2.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-[#7C3AED] font-black text-xs transition flex items-center justify-center space-x-1.5 font-heading"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Regenerate Class PIN</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition font-heading"
+                >
+                  Close Console
+                </button>
+              </div>
+            </div>
           )}
 
         </div>

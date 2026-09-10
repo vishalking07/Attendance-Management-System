@@ -106,6 +106,7 @@ class AttendanceCheckinRequest(BaseModel):
     wifi_bssid: Optional[str] = None
     liveness_challenge_response: Optional[str] = None
     liveness_score: Optional[float] = None
+    class_pin: Optional[str] = None
 
 class OTPVerifyRequest(BaseModel):
     session_id: str
@@ -119,13 +120,20 @@ class AttendanceRecordResponse(BaseModel):
     date: str  # YYYY-MM-DD
     status: str  # "PRESENT", "ABSENT", "LATE", "LEAVE"
     confidence_score: float
-    verification_method: str  # "BIOMETRIC_OTP", "BIOMETRIC_DIRECT", "MANUAL_CORRECTION", "FACULTY_SMART_PASS_SCAN"
+    verification_method: str  # "BIOMETRIC_OTP", "BIOMETRIC_DIRECT", "MANUAL_CORRECTION", "FACULTY_SMART_PASS_SCAN", "OFFLINE_STUDENT_ID_VERIFIED"
     marked_at: datetime
     session_id: Optional[str] = None
     ledger_block_hash: Optional[str] = None
     ledger_block_height: Optional[int] = None
     wifi_verified: Optional[bool] = None
     liveness_score: Optional[float] = None
+    period_number: Optional[int] = None
+    period_time: Optional[str] = None
+    course_code: Optional[str] = None
+    course_name: Optional[str] = None
+    faculty_name: Optional[str] = None
+    classroom_name: Optional[str] = None
+    faculty_distance_m: Optional[float] = None
 
 # --- CORRECTION & LEAVE SCHEMAS ---
 class CorrectionRequestCreate(BaseModel):

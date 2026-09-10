@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Users, AlertTriangle, CheckSquare, Bell, BrainCircuit, Scan, Flame, ShieldAlert, Sparkles, TrendingDown } from 'lucide-react';
+import { Users, AlertTriangle, CheckSquare, Bell, BrainCircuit, Scan, Flame, ShieldAlert, Sparkles, TrendingDown, Radio, MapPin, QrCode, Check, RefreshCw } from 'lucide-react';
 import api from '../../api/client';
 import FacultyScannerModal from '../../components/FacultyScannerModal';
 
@@ -10,6 +10,16 @@ const MentorDashboard = () => {
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [beaconUpdating, setBeaconUpdating] = useState(false);
+  const [activeBeacon, setActiveBeacon] = useState({
+    classroom_name: 'Lecture Hall CS-301',
+    course_code: 'CS801',
+    course_name: 'Distributed Systems & Cloud Security',
+    faculty_lat: 12.9716,
+    faculty_lng: 77.5946,
+    radius_meters: 500.0,
+    session_pin: '482910'
+  });
 
   useEffect(() => {
     fetchData();
@@ -17,17 +27,52 @@ const MentorDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [mRes, pRes] = await Promise.all([
+      const [mRes, pRes, bRes] = await Promise.all([
         api.get('/users?role=STUDENT'),
-        api.get('/predictions')
+        api.get('/predictions'),
+        api.get('/geofence/active-session').catch(() => null)
       ]);
       setMentees(mRes.data);
       setPredictions(pRes.data);
+      if (bRes?.data) setActiveBeacon(bRes.data);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSwitchRoom = async (roomName, lat, lng) => {
+    setBeaconUpdating(true);
+    try {
+      const res = await api.post('/geofence/beacon/update', {
+        classroom_name: roomName,
+        faculty_lat: lat,
+        faculty_lng: lng,
+        course_code: activeBeacon.course_code,
+        radius_meters: 500.0
+      });
+      if (res.data?.beacon) {
+        setActiveBeacon(res.data.beacon);
+      }
+    } catch (err) {
+      setActiveBeacon(prev => ({ ...prev, classroom_name: roomName, faculty_lat: lat, faculty_lng: lng }));
+    } finally {
+      setBeaconUpdating(false);
+    }
+  };
+
+  const handleBroadcastDeviceGPS = () => {
+    if (!navigator.geolocation) return;
+    setBeaconUpdating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        await handleSwitchRoom('Instructor Live Device Anchor', latitude, longitude);
+        setBeaconUpdating(false);
+      },
+      () => setBeaconUpdating(false)
+    );
   };
 
   const highRiskCount = predictions.filter(p => p.risk_level === 'HIGH' || p.risk_level === 'MEDIUM').length;
@@ -41,18 +86,100 @@ const MentorDashboard = () => {
             Faculty Advisor Dashboard
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Advisement for assigned mentees, velocity burn-rate alerts & dynamic classroom verification.
+            Advisement for assigned mentees, dynamic 500m classroom geofence & live attendance console.
           </p>
         </div>
 
-        {/* Module 10: Faculty Smart Pass Scanner Launcher */}
+        {/* Module 10: Faculty Smart Pass & Attendance Console Launcher */}
         <button
           onClick={() => setIsScannerOpen(true)}
           className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-700 to-[#7C3AED] hover:from-purple-800 hover:to-purple-700 text-white font-black text-xs shadow-md shadow-purple-900/20 transition-all font-heading self-start sm:self-auto"
         >
           <Scan className="w-4 h-4" />
-          <span>Launch Smart Pass Scanner</span>
+          <span>Launch Attendance Console</span>
         </button>
+      </div>
+
+      {/* DYNAMIC FACULTY-CENTRIC 500M BEACON WIDGET */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 text-white border-2 border-purple-400/50 shadow-xl shadow-purple-950/20 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-800/60 pb-3">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-purple-500/20 border border-purple-400/40 text-purple-300 flex items-center justify-center">
+              <Radio className="w-5 h-5 text-emerald-400 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-black tracking-wide font-heading uppercase text-white">
+                  Dynamic Faculty Beacon (500m Proximity Shield)
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[9px] font-mono font-bold">
+                  ACTIVE
+                </span>
+              </div>
+              <span className="text-[11px] text-purple-200">
+                Attendance restricted to students located within 500m of your active classroom GPS.
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2 self-start sm:self-auto">
+            <button
+              onClick={handleBroadcastDeviceGPS}
+              disabled={beaconUpdating}
+              className="px-3 py-1.5 rounded-xl bg-purple-800/80 hover:bg-purple-700 text-purple-100 text-[11px] font-bold border border-purple-400/30 flex items-center space-x-1 transition"
+            >
+              <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+              <span>{beaconUpdating ? 'Syncing GPS...' : 'Anchor to My Live GPS'}</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+            <span className="text-[10px] font-mono text-purple-300 uppercase">Active Classroom</span>
+            <p className="font-bold text-white truncate">{activeBeacon.classroom_name}</p>
+            <span className="text-[10px] text-slate-400 font-mono">
+              GPS: {activeBeacon.faculty_lat.toFixed(4)}, {activeBeacon.faculty_lng.toFixed(4)}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+            <span className="text-[10px] font-mono text-purple-300 uppercase">Allowed Geofence Radius</span>
+            <p className="font-bold text-emerald-400 text-base font-heading tracking-wide">
+              {activeBeacon.radius_meters || 500} Meters
+            </p>
+            <span className="text-[10px] text-slate-400">Strict radial perimeter</span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+            <span className="text-[10px] font-mono text-purple-300 uppercase">Lecture Course & PIN</span>
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-white">{activeBeacon.course_code}</span>
+              <span className="text-xs font-mono font-black text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded">
+                PIN: {activeBeacon.session_pin || '482910'}
+              </span>
+            </div>
+            <span className="text-[10px] text-slate-400">Period 1 (09:00 - 10:00 AM)</span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1 flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-purple-300 uppercase">Switch Classroom Zone</span>
+            <select
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === 'CS301') handleSwitchRoom('Lecture Hall CS-301', 12.9716, 77.5946);
+                if (val === 'AILAB') handleSwitchRoom('AI GPU Research Lab 1', 12.9725, 77.5955);
+                if (val === 'SEM_B') handleSwitchRoom('Seminar Hall B (Annex)', 12.9705, 77.5938);
+                if (val === 'AUDI') handleSwitchRoom('Central Campus Auditorium', 12.9690, 77.5960);
+              }}
+              className="w-full bg-slate-800 text-white text-[11px] font-medium rounded-xl p-1.5 border border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-400"
+            >
+              <option value="CS301">Lecture Hall CS-301 (Main)</option>
+              <option value="AILAB">AI GPU Research Lab 1</option>
+              <option value="SEM_B">Seminar Hall B (Annex)</option>
+              <option value="AUDI">Central Auditorium</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* 3 Metric Cards */}

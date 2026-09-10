@@ -109,8 +109,45 @@ async def query_academic_chatbot(
         suggestions = ["Check Leave Status", "Open Attendance Check-in", "My Bunk Budget"]
         intent = "LEAVE_CORRECTION_POLICY"
 
-    # 6. DUAL-SIGNAL GEOFENCE & SECURITY
-    elif any(k in msg for k in ["geofence", "gps", "wifi", "spoof", "bssid", "proxy"]):
+    # 6. DYNAMIC FACULTY 500M BEACON & PROXIMITY SHIELD
+    elif any(k in msg for k in ["500m", "500", "proximity", "beacon", "faculty location", "distance", "in-class", "range"]):
+        reply = (
+            f"📡 **Dynamic Faculty Beacon (Strict 500m Proximity Shield)**:\n\n"
+            f"Attendance is dynamically restricted strictly within **500 meters** of where your faculty is holding class:\n"
+            f"• **Live Faculty Beacon**: Tracks the professor's live classroom beacon (e.g., CS-301, Lab, or live device GPS).\n"
+            f"• **Strict Enforcement**: If you are within 500m (e.g., in class ~25m away), biometric & PIN check-ins succeed immediately.\n"
+            f"• **Hostel/Proxy Block**: If you are outside 500m (e.g., at hostel ~780m away), check-in is rejected with a proximity violation alert.\n"
+            f"• **Examiner Demo**: You can use the viva distance toggle on the Check-in page to demonstrate both in-range success and out-of-range rejection!"
+        )
+        suggestions = ["How does offline ID check-in work?", "Check session-wise attendance", "Open Check-in Radar"]
+        intent = "FACULTY_500M_PROXIMITY"
+
+    # 7. OFFLINE / NO-INTERNET ID CARD FALLBACK
+    elif any(k in msg for k in ["offline", "no net", "no internet", "network drop", "data down", "id card", "physical id"]):
+        reply = (
+            f"🪪 **Offline / No-Internet Classroom ID Fallback**:\n\n"
+            f"Never miss attendance because of mobile network issues or dead WiFi in class:\n"
+            f"• **Zero Data Requirement**: If your phone runs out of battery or has no signal, simply show your physical College ID card to the professor.\n"
+            f"• **Faculty 1-Click Verification**: The professor opens the **'Offline ID (No Net)'** tab on their Faculty Console, enters your Roll No (e.g., `21CS089`), and clicks **'Verify & Mark Present'**.\n"
+            f"• **Audit Trail**: The system anchors an offline proxy-proof transaction into the immutable SHA-256 ledger with `OFFLINE_FACULTY_INSPECTED` status!"
+        )
+        suggestions = ["Check 500m Faculty Geofence", "View Today's Sessions", "Open Smart Pass"]
+        intent = "OFFLINE_ID_FALLBACK"
+
+    # 8. SESSION-WISE & DATE-WISE ATTENDANCE EXPLORER
+    elif any(k in msg for k in ["session", "period", "timetable", "date wise", "date-wise", "calendar", "p1", "p2", "p3", "p4", "p5"]):
+        reply = (
+            f"📅 **Session-Wise & Date-Wise Attendance Explorer**:\n\n"
+            f"Under **Student ➔ Attendance Calendar & Sessions**, you have granular full-day visibility:\n"
+            f"• **Date Picker**: Choose any date (Today, Yesterday, or any historical date) using the date selector or 1-click quick chips.\n"
+            f"• **5-Period Daily Timetable**: View Period 1 (08:45 AM) through Period 5 (04:15 PM) with real-time status (Present / Late / Absent / Scheduled).\n"
+            f"• **Audit Telemetry**: Each session tile shows exact faculty distance (e.g., `24.5m / 500m`), verification method, and SHA-256 block hash!"
+        )
+        suggestions = ["Check 500m Faculty Beacon", "Bunk Budget Calculator", "How does Offline ID work?"]
+        intent = "SESSION_WISE_ATTENDANCE"
+
+    # 9. DUAL-SIGNAL GEOFENCE & SECURITY
+    elif any(k in msg for k in ["geofence", "gps", "wifi", "bssid", "proxy"]):
         reply = (
             f"🛰️ **Dual-Signal Geofence & Campus Network Fusion**:\n\n"
             f"To prevent GPS spoofer apps and hostel-based attendance fraud:\n"
@@ -118,10 +155,10 @@ async def query_academic_chatbot(
             f"• **Signal 2 (Campus WiFi BSSID)**: Checks that the device is connected to the authorized EduNet campus mesh network.\n"
             f"• An **Isolation Forest unsupervised anomaly engine** flags impossible travel velocity and edge-of-fence clusters."
         )
-        suggestions = ["What is Cryptographic Ledger?", "How to enroll Face ID?", "What is Smart Pass?"]
+        suggestions = ["What is 500m Faculty Proximity?", "What is Cryptographic Ledger?", "How to enroll Face ID?"]
         intent = "GEOFENCE_SECURITY"
 
-    # 7. CRYPTOGRAPHIC LEDGER / BLOCKCHAIN
+    # 10. CRYPTOGRAPHIC LEDGER / BLOCKCHAIN
     elif any(k in msg for k in ["ledger", "blockchain", "hash", "sha-256", "block", "tamper"]):
         reply = (
             f"🔗 **Cryptographic Tamper-Proof Attendance Ledger**:\n\n"

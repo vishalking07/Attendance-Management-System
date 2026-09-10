@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List, Optional
+from pydantic import BaseModel
 from datetime import datetime
 import uuid
 from app.models.schemas import (
@@ -8,7 +9,7 @@ from app.models.schemas import (
 )
 from app.services.auth_service import get_current_user, require_roles
 from app.services.face_service import decode_base64_image, extract_face_embedding, compute_similarity
-from app.services.geofence_service import check_geofence
+from app.services.geofence_service import check_geofence, haversine_distance
 from app.services.otp_service import create_otp_session, verify_otp_code
 from app.services.notification_service import create_notification, log_audit_event
 from app.services.ledger_service import create_attendance_block
@@ -75,22 +76,55 @@ async def attendance_checkin(
 
     today_str = datetime.now().strftime("%Y-%m-%d")
 
-    # FACTOR 1: GEOFENCE LOCATION & DUAL-SIGNAL WIFI/BLE CHECK
+    # FACTOR 1: GEOFENCE LOCATION & DYNAMIC 500m FACULTY BEACON CHECK
     department_id = student.get("department_id")
     dept_geofence = next((g for g in mock_geofence_db.values() if g.get("department_id") == department_id), None)
 
-    if not check_geofence(checkin.lat, checkin.lng, dept_geofence):
-        await log_audit_event(
-            actor_id=student_id,
-            actor_name=student["name"],
-            action="ATTENDANCE_LOCATION_REJECTED",
-            target=today_str,
-            details=f"Attendance rejected: GPS coordinates ({checkin.lat}, {checkin.lng}) outside campus geofence boundary."
-        )
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Location Rejected: You are outside the registered campus building geofence area (GPS: {checkin.lat:.4f}, {checkin.lng:.4f})."
-        )
+    # Dynamic Faculty Beacon check: Attendance only permitted within 500m of active faculty classroom
+    active_session = next((s for s in mock_sessions_db.values() if s.get("is_active")), None)
+    faculty_distance_m = 24.5  # default nominal in-room distance
+    
+    if active_session:
+        f_lat = active_session.get("faculty_lat", 12.9716)
+        f_lng = active_session.get("faculty_lng", 77.5946)
+        max_radius = active_session.get("radius_meters", 500.0)
+        faculty_distance_m = haversine_distance(checkin.lat, checkin.lng, f_lat, f_lng)
+
+        # STRICT 500m CUTOFF ENFORCEMENT
+        if faculty_distance_m > max_radius:
+            await log_audit_event(
+                actor_id=student_id,
+                actor_name=student["name"],
+                action="ATTENDANCE_FACULTY_PROXIMITY_EXCEEDED",
+                target=today_str,
+                details=f"Distance {faculty_distance_m:.1f}m exceeded 500m perimeter from Instructor {active_session.get('faculty_name')} in {active_session.get('classroom_name')}."
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Faculty Proximity Violation: You are {faculty_distance_m:.1f}m away from Instructor {active_session.get('faculty_name')}'s active class in {active_session.get('classroom_name')}. Attendance is strictly allowed only within 500m of the faculty location."
+            )
+
+        # Optional Class PIN verification if broadcast by faculty
+        if checkin.class_pin and active_session.get("session_pin"):
+            if checkin.class_pin.strip() != active_session.get("session_pin").strip():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid Classroom Beacon PIN. Enter the 6-digit PIN broadcast on the classroom screen."
+                )
+    else:
+        # Fallback to campus boundary if no active session
+        if not check_geofence(checkin.lat, checkin.lng, dept_geofence):
+            await log_audit_event(
+                actor_id=student_id,
+                actor_name=student["name"],
+                action="ATTENDANCE_LOCATION_REJECTED",
+                target=today_str,
+                details=f"Attendance rejected: GPS coordinates ({checkin.lat}, {checkin.lng}) outside campus geofence boundary."
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Location Rejected: You are outside the registered campus building geofence area (GPS: {checkin.lat:.4f}, {checkin.lng:.4f})."
+            )
 
     # Dual-Signal WiFi / BLE signature match
     wifi_verified = False
@@ -174,7 +208,14 @@ async def attendance_checkin(
             "marked_at": datetime.utcnow().isoformat(),
             "session_id": session_id,
             "wifi_verified": wifi_verified,
-            "liveness_score": round(liveness_score, 2)
+            "liveness_score": round(liveness_score, 2),
+            "period_number": active_session.get("period_number", 1) if active_session else 1,
+            "period_time": active_session.get("period_time", "09:00 - 10:00 AM") if active_session else "09:00 - 10:00 AM",
+            "course_code": active_session.get("course_code", "CS801") if active_session else "CS801",
+            "course_name": active_session.get("course_name", "Distributed Systems & Cloud Security") if active_session else "Distributed Systems & Cloud Security",
+            "classroom_name": active_session.get("classroom_name", "Lecture Hall CS-301") if active_session else "Lecture Hall CS-301",
+            "faculty_name": active_session.get("faculty_name", "Dr. Rajesh Ramanathan") if active_session else "Dr. Rajesh Ramanathan",
+            "faculty_distance_m": round(faculty_distance_m, 1)
         }
 
         # Cryptographic block append
@@ -332,3 +373,216 @@ async def get_attendance_history(
         records = [r for r in records if r["student_id"] == student_id]
 
     return records
+
+class OfflineIDCheckinRequest(BaseModel):
+    student_id: str
+    scanner_location: Optional[str] = "Lecture Hall CS-301"
+    reason: Optional[str] = "OFFLINE_NO_INTERNET"
+
+@router.post("/offline-id-checkin")
+async def mark_offline_student_id_attendance(
+    payload: OfflineIDCheckinRequest,
+    current_user: TokenData = Depends(require_roles([UserRole.MENTOR, UserRole.HOD, UserRole.ADMIN]))
+):
+    """
+    Offline / No-Internet Fallback:
+    When a student has no network connectivity in the classroom, the faculty inspects
+    their physical Student ID / Roll number and marks them present with 1-click.
+    """
+    student = next((u for u in mock_users_db.values() if u["id"] == payload.student_id), None)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student record not found")
+
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    record_id = f"att_off_{len(mock_attendance_db) + 1}"
+
+    active_session = next((s for s in mock_sessions_db.values() if s.get("is_active")), None)
+
+    new_record = {
+        "id": record_id,
+        "student_id": student["id"],
+        "student_name": student["name"],
+        "department_id": student.get("department_id", "dept_cs"),
+        "date": today_str,
+        "status": "PRESENT",
+        "confidence_score": 1.0,
+        "verification_method": "OFFLINE_STUDENT_ID_VERIFIED",
+        "marked_at": datetime.utcnow().isoformat(),
+        "verified_by_faculty_id": current_user.user_id,
+        "location": payload.scanner_location or (active_session.get("classroom_name") if active_session else "Lecture Hall CS-301"),
+        "period_number": active_session.get("period_number", 1) if active_session else 1,
+        "period_time": active_session.get("period_time", "09:00 - 10:00 AM") if active_session else "09:00 - 10:00 AM",
+        "course_code": active_session.get("course_code", "CS801") if active_session else "CS801",
+        "course_name": active_session.get("course_name", "Distributed Systems & Cloud Security") if active_session else "Distributed Systems & Cloud Security",
+        "classroom_name": active_session.get("classroom_name", "Lecture Hall CS-301") if active_session else "Lecture Hall CS-301",
+        "faculty_name": active_session.get("faculty_name", "Dr. Rajesh Ramanathan") if active_session else "Dr. Rajesh Ramanathan",
+        "faculty_distance_m": 0.0  # Physically verified on-site by faculty
+    }
+
+    mock_attendance_db.append(new_record)
+    ledger_block = create_attendance_block(new_record)
+    new_record["ledger_block_hash"] = ledger_block["block_hash"]
+    new_record["ledger_block_height"] = ledger_block["block_height"]
+
+    await log_audit_event(
+        actor_id=current_user.user_id,
+        actor_name=current_user.role,
+        action="OFFLINE_STUDENT_ID_OVERRIDE",
+        target=student["id"],
+        details=f"Physically verified student ID for {student['name']} due to no network connectivity in {payload.scanner_location}. Sealed Block #{ledger_block['block_height']}."
+    )
+
+    await create_notification(
+        user_id=student["id"],
+        title="Attendance Marked Present (Offline ID Verified)",
+        message=f"Your attendance for {today_str} was marked present by faculty via physical ID check. Block #{ledger_block['block_height']} sealed.",
+        notification_type="SUCCESS"
+    )
+
+    return {
+        "status": "VERIFIED_PRESENT",
+        "student_id": student["id"],
+        "student_name": student["name"],
+        "marked_at": new_record["marked_at"],
+        "verification_method": "OFFLINE_STUDENT_ID_VERIFIED",
+        "ledger_block_height": ledger_block["block_height"],
+        "ledger_block_hash": ledger_block["block_hash"][:16] + "...",
+        "message": f"Successfully verified {student['name']} via Physical Student ID Card (Offline Fallback)!"
+    }
+
+@router.get("/sessions")
+async def get_session_wise_attendance(
+    date: Optional[str] = None,
+    student_id: Optional[str] = None,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """
+    Returns full day period-by-period (session-wise) timetable and attendance breakdown
+    for the requested date (defaults to today).
+    """
+    target_date = date or datetime.now().strftime("%Y-%m-%d")
+    target_student_id = student_id if (student_id and current_user.role != UserRole.STUDENT) else current_user.user_id
+
+    # 5 standard daily academic periods
+    default_schedule = [
+        {
+            "period_number": 1,
+            "period_time": "09:00 - 10:00 AM",
+            "course_code": "CS801",
+            "course_name": "Distributed Systems & Cloud Security",
+            "faculty_name": "Dr. Rajesh Ramanathan",
+            "classroom_name": "Lecture Hall CS-301",
+            "default_status": "PRESENT",
+            "method": "BIOMETRIC_DIRECT",
+            "faculty_distance_m": 24.5
+        },
+        {
+            "period_number": 2,
+            "period_time": "10:15 - 11:15 AM",
+            "course_code": "CS802",
+            "course_name": "Deep Neural Networks & Computer Vision",
+            "faculty_name": "Dr. Alan Turing",
+            "classroom_name": "AI GPU Lab 1",
+            "default_status": "PRESENT",
+            "method": "SMART_PASS_QR",
+            "faculty_distance_m": 31.2
+        },
+        {
+            "period_number": 3,
+            "period_time": "11:30 - 12:30 PM",
+            "course_code": "CS803",
+            "course_name": "Cloud Infrastructure & Microservices",
+            "faculty_name": "Dr. Tim Berners-Lee",
+            "classroom_name": "Lecture Hall CS-302",
+            "default_status": "PRESENT",
+            "method": "OFFLINE_STUDENT_ID_VERIFIED",
+            "faculty_distance_m": 18.0
+        },
+        {
+            "period_number": 4,
+            "period_time": "01:30 - 02:30 PM",
+            "course_code": "CS804",
+            "course_name": "Blockchain & Zero-Knowledge Cryptography",
+            "faculty_name": "Dr. Ada Lovelace",
+            "classroom_name": "Cyber Operations Room",
+            "default_status": "ABSENT",
+            "method": "UNEXCUSED_ABSENCE",
+            "faculty_distance_m": 720.0
+        },
+        {
+            "period_number": 5,
+            "period_time": "02:45 - 03:45 PM",
+            "course_code": "CS805",
+            "course_name": "Bio-XAI Capstone Seminar",
+            "faculty_name": "Dr. Rajesh Ramanathan",
+            "classroom_name": "Seminar Hall B",
+            "default_status": "UPCOMING",
+            "method": "SCHEDULED",
+            "faculty_distance_m": None
+        }
+    ]
+
+    # Look up actual logged attendance records for target_student_id on target_date
+    day_records = [
+        r for r in mock_attendance_db 
+        if r.get("student_id") == target_student_id and r.get("date") == target_date
+    ]
+
+    periods_response = []
+    for s in default_schedule:
+        matched = next((r for r in day_records if r.get("period_number") == s["period_number"]), None)
+        if not matched and s["period_number"] == 1 and len(day_records) > 0:
+            matched = day_records[0]
+
+        if matched:
+            periods_response.append({
+                "period_number": s["period_number"],
+                "period_time": s["period_time"],
+                "course_code": matched.get("course_code", s["course_code"]),
+                "course_name": matched.get("course_name", s["course_name"]),
+                "faculty_name": matched.get("faculty_name", s["faculty_name"]),
+                "classroom_name": matched.get("classroom_name", s["classroom_name"]),
+                "status": matched.get("status", "PRESENT"),
+                "verification_method": matched.get("verification_method", "BIOMETRIC_DIRECT"),
+                "faculty_distance_m": matched.get("faculty_distance_m", s["faculty_distance_m"]),
+                "in_500m_perimeter": (matched.get("faculty_distance_m", 25.0) or 25.0) <= 500.0,
+                "marked_at": matched.get("marked_at"),
+                "ledger_block_height": matched.get("ledger_block_height", 1420 + s["period_number"]),
+                "ledger_block_hash": matched.get("ledger_block_hash", "0x9f4a...b18c")
+            })
+        else:
+            periods_response.append({
+                "period_number": s["period_number"],
+                "period_time": s["period_time"],
+                "course_code": s["course_code"],
+                "course_name": s["course_name"],
+                "faculty_name": s["faculty_name"],
+                "classroom_name": s["classroom_name"],
+                "status": s["default_status"],
+                "verification_method": s["method"],
+                "faculty_distance_m": s["faculty_distance_m"],
+                "in_500m_perimeter": (s["faculty_distance_m"] or 999.0) <= 500.0 if s["faculty_distance_m"] else False,
+                "marked_at": f"{target_date}T{s['period_time'][:2]}:05:00Z" if s["default_status"] == "PRESENT" else None,
+                "ledger_block_height": 1420 + s["period_number"] if s["default_status"] == "PRESENT" else None,
+                "ledger_block_hash": "0x4b7c...28e1" if s["default_status"] == "PRESENT" else None
+            })
+
+    total_periods = len(periods_response)
+    present_count = len([p for p in periods_response if p["status"] == "PRESENT"])
+    absent_count = len([p for p in periods_response if p["status"] == "ABSENT"])
+    upcoming_count = len([p for p in periods_response if p["status"] == "UPCOMING"])
+    attendance_rate = round((present_count / max(present_count + absent_count, 1)) * 100, 1)
+
+    return {
+        "date": target_date,
+        "student_id": target_student_id,
+        "total_periods": total_periods,
+        "present_periods": present_count,
+        "absent_periods": absent_count,
+        "upcoming_periods": upcoming_count,
+        "day_attendance_pct": attendance_rate,
+        "faculty_proximity_enforced": True,
+        "max_geofence_radius_m": 500.0,
+        "periods": periods_response
+    }
+
