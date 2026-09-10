@@ -12,6 +12,7 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successResult, setSuccessResult] = useState(null);
+  const [cameraBlocked, setCameraBlocked] = useState(false);
 
   const sampleStudents = [
     { id: 'usr_student_2', name: 'Sarah Jenkins (At-Risk / Target)', email: 'sarah.jenkins@student.bioxai.edu' },
@@ -246,22 +247,49 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
                   screenshotFormat="image/jpeg"
                   className="absolute inset-0 w-full h-full object-cover opacity-80"
                   videoConstraints={{ facingMode: "environment" }}
+                  onUserMedia={() => setCameraBlocked(false)}
+                  onUserMediaError={(err) => {
+                    console.warn("Webcam error:", err);
+                    setCameraBlocked(true);
+                  }}
                 />
 
                 {/* Laser Scanning Animation */}
-                <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#A855F7] to-transparent shadow-[0_0_20px_#A855F7] animate-pulse top-1/2 -translate-y-1/2 z-10"></div>
+                {!cameraBlocked && (
+                  <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#A855F7] to-transparent shadow-[0_0_20px_#A855F7] animate-pulse top-1/2 -translate-y-1/2 z-10"></div>
+                )}
                 
                 {/* QR Target Reticle Frame */}
-                <div className="w-36 h-36 border-2 border-dashed border-purple-400/80 rounded-2xl relative flex items-center justify-center z-10 backdrop-blur-[1px]">
-                  <div className="absolute top-0 left-0 w-4 h-4 border-t-3 border-l-3 border-[#7C3AED]"></div>
-                  <div className="absolute top-0 right-0 w-4 h-4 border-t-3 border-r-3 border-[#7C3AED]"></div>
-                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-3 border-l-3 border-[#7C3AED]"></div>
-                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-3 border-r-3 border-[#7C3AED]"></div>
-                  <Scan className="w-8 h-8 text-purple-300 animate-spin" />
-                </div>
+                {!cameraBlocked && (
+                  <div className="w-36 h-36 border-2 border-dashed border-purple-400/80 rounded-2xl relative flex items-center justify-center z-10 backdrop-blur-[1px]">
+                    <div className="absolute top-0 left-0 w-4 h-4 border-t-3 border-l-3 border-[#7C3AED]"></div>
+                    <div className="absolute top-0 right-0 w-4 h-4 border-t-3 border-r-3 border-[#7C3AED]"></div>
+                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-3 border-l-3 border-[#7C3AED]"></div>
+                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-3 border-r-3 border-[#7C3AED]"></div>
+                    <Scan className="w-8 h-8 text-purple-300 animate-spin" />
+                  </div>
+                )}
+
+                {/* Camera Blocked Overlay */}
+                {cameraBlocked && (
+                  <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-sm p-4 flex flex-col items-center justify-center text-center z-20">
+                    <AlertCircle className="w-8 h-8 text-amber-400 mb-1" />
+                    <span className="text-xs font-black text-amber-200 font-heading">Camera Access Blocked</span>
+                    <p className="text-[10px] text-slate-400 max-w-xs mt-1 leading-tight">
+                      Camera feed unavailable on localhost. You can switch to manual code verification or simulate optical scan below.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setScanMode('MANUAL')}
+                      className="mt-2.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold shadow"
+                    >
+                      Switch to Manual Code Entry
+                    </button>
+                  </div>
+                )}
 
                 <div className="absolute bottom-2 px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur-md text-[10px] text-purple-200 font-mono tracking-wide z-10 border border-purple-500/30">
-                  Aim camera at Student Smart Pass QR
+                  {cameraBlocked ? "Camera offline - Simulator ready" : "Aim camera at Student Smart Pass QR"}
                 </div>
               </div>
 
@@ -279,7 +307,7 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
                 className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#7C3AED] to-purple-800 hover:opacity-95 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-purple-900/25 flex items-center justify-center space-x-2 font-heading"
               >
                 {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Scan className="w-4 h-4" />}
-                <span>{loading ? 'Reading Optical TOTP Code...' : 'Scan & Verify Student QR Code'}</span>
+                <span>{loading ? 'Reading Optical TOTP Code...' : (cameraBlocked ? 'Simulate Optical QR Scan' : 'Scan & Verify Student QR Code')}</span>
               </button>
             </div>
           ) : (

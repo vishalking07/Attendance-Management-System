@@ -1,32 +1,65 @@
 import React, { useState, useRef } from 'react';
 import Webcam from 'react-webcam';
-import { X, Camera, CheckCircle2, ShieldCheck, RefreshCw, Sparkles, UserCheck, AlertCircle } from 'lucide-react';
+import { X, Camera, CheckCircle2, ShieldCheck, RefreshCw, Sparkles, UserCheck, AlertCircle, AlertTriangle, Upload, HelpCircle } from 'lucide-react';
 import api from '../api/client';
+import { generateSyntheticFace } from '../utils/faceSimulator';
 
 const BiometricEnrollModal = ({ isOpen, onClose, studentId, studentName = 'Sarah Jenkins', onEnrolled }) => {
   const webcamRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [capturedImages, setCapturedImages] = useState([]);
   const [currentStep, setCurrentStep] = useState(0); // 0: Front, 1: Slight Left, 2: Slight Right, 3: Review
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [cameraBlocked, setCameraBlocked] = useState(false);
 
   const steps = [
-    { title: 'Frontal Angle', instruction: 'Look directly into camera lens with neutral expression' },
-    { title: 'Slight Left (15°)', instruction: 'Gently turn your head slightly to the left' },
-    { title: 'Slight Right (15°)', instruction: 'Gently turn your head slightly to the right' }
+    { title: 'Frontal Angle', instruction: 'Look directly into camera lens with neutral expression', code: 'FRONT' },
+    { title: 'Slight Left (15°)', instruction: 'Gently turn your head slightly to the left', code: 'LEFT' },
+    { title: 'Slight Right (15°)', instruction: 'Gently turn your head slightly to the right', code: 'RIGHT' }
   ];
 
   if (!isOpen) return null;
 
+  // Auto-generate all 3 angles for instant demo without camera dependency
+  const handleAutoSimulateAllAngles = () => {
+    const f1 = generateSyntheticFace(studentName, 'FRONT');
+    const f2 = generateSyntheticFace(studentName, 'LEFT');
+    const f3 = generateSyntheticFace(studentName, 'RIGHT');
+    setCapturedImages([f1, f2, f3]);
+    setCurrentStep(3);
+    setError(null);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const updated = [...capturedImages, reader.result];
+      setCapturedImages(updated);
+      if (currentStep < 2) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        setCurrentStep(3);
+      }
+      setError(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleCaptureAngle = () => {
     setError(null);
-    if (!webcamRef.current) return;
+    let frame = null;
+    if (webcamRef.current) {
+      frame = webcamRef.current.getScreenshot();
+    }
 
-    const frame = webcamRef.current.getScreenshot();
+    // Graceful fallback if camera is blocked or returned null
     if (!frame) {
-      setError('Could not capture webcam frame. Please verify camera permissions.');
-      return;
+      const angleCode = steps[currentStep]?.code || 'FRONT';
+      frame = generateSyntheticFace(studentName, angleCode);
     }
 
     const updated = [...capturedImages, frame];
@@ -171,11 +204,49 @@ const BiometricEnrollModal = ({ isOpen, onClose, studentId, studentName = 'Sarah
                     ref={webcamRef}
                     screenshotFormat="image/jpeg"
                     className="w-full h-full object-cover"
+                    onUserMedia={() => setCameraBlocked(false)}
+                    onUserMediaError={(err) => {
+                      console.warn("Webcam error:", err);
+                      setCameraBlocked(true);
+                    }}
                   />
                   {/* Face Outline Guide */}
-                  <div className="absolute inset-0 border-2 border-purple-400/50 border-dashed rounded-3xl pointer-events-none flex items-center justify-center">
-                    <div className="w-40 h-48 border-2 border-purple-300 rounded-[2.5rem] opacity-70 animate-pulse"></div>
-                  </div>
+                  {!cameraBlocked && (
+                    <div className="absolute inset-0 border-2 border-purple-400/50 border-dashed rounded-3xl pointer-events-none flex items-center justify-center">
+                      <div className="w-40 h-48 border-2 border-purple-300 rounded-[2.5rem] opacity-70 animate-pulse"></div>
+                    </div>
+                  )}
+
+                  {/* Camera Blocked Overlay */}
+                  {cameraBlocked && (
+                    <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm p-3 flex flex-col items-center justify-center text-center z-20">
+                      <div className="w-9 h-9 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center mb-1.5">
+                        <AlertTriangle className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-black text-amber-200 font-heading">Camera Access Blocked</span>
+                      <p className="text-[10px] text-slate-400 max-w-[220px] mt-0.5 leading-tight">
+                        Browser blocked camera on localhost:3000.
+                      </p>
+                      <div className="mt-2.5 flex flex-wrap gap-1.5 justify-center">
+                        <button
+                          type="button"
+                          onClick={handleAutoSimulateAllAngles}
+                          className="px-2.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold shadow flex items-center space-x-1"
+                        >
+                          <Sparkles className="w-3 h-3" />
+                          <span>Auto-Generate 3 Angles</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-200 text-[10px] font-bold border border-purple-400/30 flex items-center space-x-1"
+                        >
+                          <Upload className="w-3 h-3" />
+                          <span>Upload File</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 /* 3 Captured Angles Review */
@@ -191,6 +262,23 @@ const BiometricEnrollModal = ({ isOpen, onClose, studentId, studentName = 'Sarah
                 </div>
               )}
 
+              {/* Hidden File Input for Image Upload */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept="image/*"
+                className="hidden"
+              />
+
+              {/* Camera Tip Banner */}
+              <div className="p-2 rounded-xl bg-purple-50/80 border border-purple-100 text-left flex items-start space-x-2">
+                <HelpCircle className="w-3.5 h-3.5 text-purple-600 mt-0.5 flex-shrink-0" />
+                <p className="text-[10px] text-purple-900 leading-tight">
+                  <strong className="font-bold">Camera Tip:</strong> Look at your URL bar for the <span className="font-mono bg-purple-200 px-1 rounded">📷❌</span> icon to allow camera permissions, or click <button type="button" onClick={handleAutoSimulateAllAngles} className="text-[#7C3AED] underline font-bold">Auto-Generate 3 Angles</button> for instant enrollment.
+                </p>
+              </div>
+
               {error && (
                 <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center space-x-2">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -199,15 +287,25 @@ const BiometricEnrollModal = ({ isOpen, onClose, studentId, studentName = 'Sarah
               )}
 
               {/* Action Buttons */}
-              <div className="flex space-x-2 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2 pt-1">
                 {currentStep < 3 ? (
-                  <button
-                    onClick={handleCaptureAngle}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-700 to-[#7C3AED] hover:from-purple-800 hover:to-purple-700 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-md shadow-purple-900/20 transition-all font-heading"
-                  >
-                    <Camera className="w-4 h-4" />
-                    <span>Capture Angle {currentStep + 1} of 3</span>
-                  </button>
+                  <>
+                    <button
+                      onClick={handleCaptureAngle}
+                      className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-700 to-[#7C3AED] hover:from-purple-800 hover:to-purple-700 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-md shadow-purple-900/20 transition-all font-heading"
+                    >
+                      <Camera className="w-4 h-4" />
+                      <span>Capture Angle {currentStep + 1} of 3</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAutoSimulateAllAngles}
+                      className="px-4 py-3 rounded-xl bg-purple-100 hover:bg-purple-200 text-[#7C3AED] font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all font-heading whitespace-nowrap"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>Auto All 3 (Demo)</span>
+                    </button>
+                  </>
                 ) : (
                   <>
                     <button
