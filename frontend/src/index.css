@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #ECE6F8;
+    color: #1E293B;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+  }
+
+  /* Headings with high contrast and sharp typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    color: #0F172A;
+    letter-spacing: -0.025em;
+  }
+}
+
+/* Unified Clean White Card System */
+.app-card, .soft-card {
+  background-color: #FFFFFF;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 20px -2px rgba(124, 58, 237, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(235, 229, 247, 0.9);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.app-card:hover, .soft-card:hover {
+  border-color: rgba(167, 139, 250, 0.6);
+  box-shadow: 0 10px 25px -3px rgba(124, 58, 237, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.03);
+}
+
+/* Highlighted active card matching reference image (purple double-border & glow) */
+.app-card-active, .card-highlight {
+  background-color: #FFFFFF;
+  border-radius: 1.25rem;
+  border: 2px solid #7C3AED;
+  box-shadow: 0 10px 25px -4px rgba(124, 58, 237, 0.18), 0 0 0 3px rgba(124, 58, 237, 0.08);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.app-card-active:hover, .card-highlight:hover {
+  box-shadow: 0 14px 30px -4px rgba(124, 58, 237, 0.24), 0 0 0 4px rgba(124, 58, 237, 0.12);
+}
+
+/* Sleek modern custom scrollbar for inner scroll views */
+.custom-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  background: #DDD6FE;
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background: #8B5CF6;
+}
+
+/* Hide scrollbar for clean horizontal/vertical touch areas */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
