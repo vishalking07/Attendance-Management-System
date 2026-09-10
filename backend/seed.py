@@ -14,19 +14,28 @@ logger = logging.getLogger(__name__)
 def seed_database_data():
     logger.info("🌱 Seeding Database with 10 student accounts, departments, polygon geofences, and synthetic metrics...")
 
-    # 1. DEPARTMENTS
-    mock_departments_db["dept_cs"] = {
-        "id": "dept_cs",
-        "name": "Computer Science & AI",
-        "code": "CS",
-        "hod_id": "usr_hod_cs"
-    }
-    mock_departments_db["dept_ece"] = {
-        "id": "dept_ece",
-        "name": "Electronics & Communication",
-        "code": "ECE",
-        "hod_id": "usr_hod_ece"
-    }
+    # 1. 10 ACADEMIC DEPARTMENTS
+    mock_departments_db.clear()
+    depts_list = [
+        ("dept_cs", "Computer Science & Engineering", "CS", "usr_hod_cs"),
+        ("dept_ai_ds", "Artificial Intelligence & Data Science", "AI-DS", "usr_hod_aids"),
+        ("dept_ece", "Electronics & Communication Engineering", "ECE", "usr_hod_ece"),
+        ("dept_it", "Information Technology & Cloud Systems", "IT", "usr_hod_it"),
+        ("dept_cyber", "Cybersecurity & Digital Forensics", "CYS", "usr_hod_cyber"),
+        ("dept_robotics", "Robotics & Autonomous Automation", "RAI", "usr_hod_robotics"),
+        ("dept_biomed", "Biomedical Engineering & Health Informatics", "BME", "usr_hod_biomed"),
+        ("dept_mech", "Mechanical Engineering & Mechatronics", "MECH", "usr_hod_mech"),
+        ("dept_aero", "Aerospace & Avionics Engineering", "AERO", "usr_hod_aero"),
+        ("dept_civil", "Civil & Sustainable Infrastructure", "CIVIL", "usr_hod_civil")
+    ]
+
+    for d_id, name, code, h_id in depts_list:
+        mock_departments_db[d_id] = {
+            "id": d_id,
+            "name": name,
+            "code": code,
+            "hod_id": h_id
+        }
 
     # Default Passwords
     admin_pw = get_password_hash("Admin@123")
@@ -48,29 +57,32 @@ def seed_database_data():
         "password_hash": admin_pw
     }
 
-    # HODs
-    mock_users_db["hod.cs@bioxai.edu"] = {
-        "id": "usr_hod_cs",
-        "name": "Prof. Robert Langdon (HOD CS)",
-        "email": "hod.cs@bioxai.edu",
-        "phone": "+1 555-0101",
-        "role": "HOD",
-        "department_id": "dept_cs",
-        "mentor_id": None,
-        "profile_photo": "https://api.dicebear.com/7.x/avataaars/svg?seed=Robert",
-        "password_hash": hod_pw
-    }
-    mock_users_db["hod.ece@bioxai.edu"] = {
-        "id": "usr_hod_ece",
-        "name": "Prof. Clara Oswald (HOD ECE)",
-        "email": "hod.ece@bioxai.edu",
-        "phone": "+1 555-0102",
-        "role": "HOD",
-        "department_id": "dept_ece",
-        "mentor_id": None,
-        "profile_photo": "https://api.dicebear.com/7.x/avataaars/svg?seed=Clara",
-        "password_hash": hod_pw
-    }
+    # 10 HODs (One for each Department)
+    hods_data = [
+        ("usr_hod_cs", "Prof. Robert Langdon (HOD CS)", "hod.cs@bioxai.edu", "dept_cs", "Robert"),
+        ("usr_hod_aids", "Dr. Yoshua Bengio (HOD AI-DS)", "hod.aids@bioxai.edu", "dept_ai_ds", "Yoshua"),
+        ("usr_hod_ece", "Prof. Clara Oswald (HOD ECE)", "hod.ece@bioxai.edu", "dept_ece", "Clara"),
+        ("usr_hod_it", "Dr. Dennis Ritchie (HOD IT)", "hod.it@bioxai.edu", "dept_it", "Dennis"),
+        ("usr_hod_cyber", "Dr. Kevin Mitnick (HOD Cyber)", "hod.cyber@bioxai.edu", "dept_cyber", "Kevin"),
+        ("usr_hod_robotics", "Dr. Rodney Brooks (HOD Robotics)", "hod.robotics@bioxai.edu", "dept_robotics", "Rodney"),
+        ("usr_hod_biomed", "Dr. Rosalind Franklin (HOD BioMed)", "hod.biomed@bioxai.edu", "dept_biomed", "Rosalind"),
+        ("usr_hod_mech", "Prof. James Watt (HOD Mech)", "hod.mech@bioxai.edu", "dept_mech", "James"),
+        ("usr_hod_aero", "Dr. A.P.J. Abdul Kalam (HOD Aero)", "hod.aero@bioxai.edu", "dept_aero", "Kalam"),
+        ("usr_hod_civil", "Prof. M. Visvesvaraya (HOD Civil)", "hod.civil@bioxai.edu", "dept_civil", "Mokshagundam")
+    ]
+
+    for h_id, name, email, d_id, seed_av in hods_data:
+        mock_users_db[email] = {
+            "id": h_id,
+            "name": name,
+            "email": email,
+            "phone": f"+1 555-01{len(mock_users_db):02d}",
+            "role": "HOD",
+            "department_id": d_id,
+            "mentor_id": None,
+            "profile_photo": f"https://api.dicebear.com/7.x/avataaars/svg?seed={seed_av}",
+            "password_hash": hod_pw
+        }
 
     # Mentors
     mock_users_db["mentor1.cs@bioxai.edu"] = {
@@ -90,24 +102,57 @@ def seed_database_data():
         "email": "mentor2.cs@bioxai.edu",
         "phone": "+1 555-0104",
         "role": "MENTOR",
-        "department_id": "dept_cs",
+        "department_id": "dept_ai_ds",
         "mentor_id": None,
         "profile_photo": "https://api.dicebear.com/7.x/avataaars/svg?seed=Grace",
         "password_hash": mentor_pw
     }
+    mock_users_db["mentor3.ece@bioxai.edu"] = {
+        "id": "usr_mentor3",
+        "name": "Dr. Nikola Tesla (Faculty Advisor)",
+        "email": "mentor3.ece@bioxai.edu",
+        "phone": "+1 555-0105",
+        "role": "MENTOR",
+        "department_id": "dept_ece",
+        "mentor_id": None,
+        "profile_photo": "https://api.dicebear.com/7.x/avataaars/svg?seed=Tesla",
+        "password_hash": mentor_pw
+    }
+    mock_users_db["mentor4.it@bioxai.edu"] = {
+        "id": "usr_mentor4",
+        "name": "Dr. Tim Berners-Lee (Faculty Advisor)",
+        "email": "mentor4.it@bioxai.edu",
+        "phone": "+1 555-0106",
+        "role": "MENTOR",
+        "department_id": "dept_it",
+        "mentor_id": None,
+        "profile_photo": "https://api.dicebear.com/7.x/avataaars/svg?seed=Tim",
+        "password_hash": mentor_pw
+    }
+    mock_users_db["mentor5.mech@bioxai.edu"] = {
+        "id": "usr_mentor5",
+        "name": "Dr. Marie Curie (Faculty Advisor)",
+        "email": "mentor5.mech@bioxai.edu",
+        "phone": "+1 555-0107",
+        "role": "MENTOR",
+        "department_id": "dept_mech",
+        "mentor_id": None,
+        "profile_photo": "https://api.dicebear.com/7.x/avataaars/svg?seed=Curie",
+        "password_hash": mentor_pw
+    }
 
-    # 10 Diverse Students across CS and ECE
+    # 10 Diverse Students Distributed Across All 10 Departments
     students_data = [
         ("Alex Smith", "alex.smith@student.bioxai.edu", "dept_cs", "usr_mentor1", 93.5, 88.0, 95.0, 0, 0),
-        ("Sarah Jenkins", "sarah.jenkins@student.bioxai.edu", "dept_cs", "usr_mentor1", 64.0, 54.0, 68.0, 4, 3), # At Risk!
-        ("David Kumar", "david.kumar@student.bioxai.edu", "dept_cs", "usr_mentor2", 85.0, 78.0, 86.0, 1, 0),
-        ("Emily Chen", "emily.chen@student.bioxai.edu", "dept_cs", "usr_mentor2", 58.0, 48.0, 60.0, 5, 2), # High Risk!
-        ("Michael Scott", "michael.scott@student.bioxai.edu", "dept_ece", "usr_mentor1", 76.0, 72.0, 78.0, 2, 1),
-        ("Priya Sharma", "priya.sharma@student.bioxai.edu", "dept_cs", "usr_mentor1", 89.0, 84.0, 90.0, 1, 0),
-        ("Rohan Patel", "rohan.patel@student.bioxai.edu", "dept_cs", "usr_mentor2", 71.0, 66.0, 74.0, 3, 2), # Shortage Warning!
-        ("Ananya Iyer", "ananya.iyer@student.bioxai.edu", "dept_ece", "usr_mentor2", 96.0, 92.0, 98.0, 0, 0), # Star Performer
-        ("Vikram Singh", "vikram.singh@student.bioxai.edu", "dept_ece", "usr_mentor1", 52.0, 45.0, 55.0, 6, 3), # Severe Deficit
-        ("Kavya Nair", "kavya.nair@student.bioxai.edu", "dept_cs", "usr_mentor2", 82.0, 80.0, 85.0, 1, 1)
+        ("Sarah Jenkins", "sarah.jenkins@student.bioxai.edu", "dept_ai_ds", "usr_mentor2", 64.0, 54.0, 68.0, 4, 3), # At Risk!
+        ("David Kumar", "david.kumar@student.bioxai.edu", "dept_ece", "usr_mentor3", 85.0, 78.0, 86.0, 1, 0),
+        ("Emily Chen", "emily.chen@student.bioxai.edu", "dept_it", "usr_mentor4", 58.0, 48.0, 60.0, 5, 2), # High Risk!
+        ("Michael Scott", "michael.scott@student.bioxai.edu", "dept_mech", "usr_mentor5", 76.0, 72.0, 78.0, 2, 1),
+        ("Priya Sharma", "priya.sharma@student.bioxai.edu", "dept_cyber", "usr_mentor1", 89.0, 84.0, 90.0, 1, 0),
+        ("Rohan Patel", "rohan.patel@student.bioxai.edu", "dept_robotics", "usr_mentor3", 71.0, 66.0, 74.0, 3, 2), # Shortage Warning!
+        ("Ananya Iyer", "ananya.iyer@student.bioxai.edu", "dept_biomed", "usr_mentor5", 96.0, 92.0, 98.0, 0, 0), # Star Performer
+        ("Vikram Singh", "vikram.singh@student.bioxai.edu", "dept_aero", "usr_mentor5", 52.0, 45.0, 55.0, 6, 3), # Severe Deficit
+        ("Kavya Nair", "kavya.nair@student.bioxai.edu", "dept_civil", "usr_mentor2", 82.0, 80.0, 85.0, 1, 1)
     ]
 
     for idx, (name, email, d_id, m_id, att, ex, asg, l_cnt, c_cnt) in enumerate(students_data):
@@ -177,35 +222,36 @@ def seed_database_data():
                 except Exception:
                     pass
 
-    # 3. POLYGON GEOFENCE ZONES
-    mock_geofence_db["geo_cs"] = {
-        "id": "geo_cs",
-        "name": "Computer Science Building & Campus Center",
-        "department_id": "dept_cs",
-        "center_lat": 12.9716,
-        "center_lng": 77.5946,
-        "radius_meters": 200.0,
-        "coordinates": [
-            {"lat": 12.9725, "lng": 77.5935},
-            {"lat": 12.9725, "lng": 77.5957},
-            {"lat": 12.9705, "lng": 77.5957},
-            {"lat": 12.9705, "lng": 77.5935}
-        ]
-    }
-    mock_geofence_db["geo_ece"] = {
-        "id": "geo_ece",
-        "name": "Electronics & Embedded Systems Complex",
-        "department_id": "dept_ece",
-        "center_lat": 12.9750,
-        "center_lng": 77.5980,
-        "radius_meters": 180.0,
-        "coordinates": [
-            {"lat": 12.9760, "lng": 77.5970},
-            {"lat": 12.9760, "lng": 77.5990},
-            {"lat": 12.9740, "lng": 77.5990},
-            {"lat": 12.9740, "lng": 77.5970}
-        ]
-    }
+    # 3. 10 CAMPUS POLYGON GEOFENCE ZONES (One for each Department)
+    mock_geofence_db.clear()
+    geofences_data = [
+        ("geo_cs", "Computer Science & Software Complex", "dept_cs", 12.9716, 77.5946, 200.0),
+        ("geo_aids", "AI Innovation Hub & GPU Compute Center", "dept_ai_ds", 12.9725, 77.5955, 190.0),
+        ("geo_ece", "Electronics & Silicon Nano-Lab Complex", "dept_ece", 12.9750, 77.5980, 180.0),
+        ("geo_it", "Information Technology & Cloud Systems Wing", "dept_it", 12.9735, 77.5965, 185.0),
+        ("geo_cyber", "Cyber Defense Operations Center", "dept_cyber", 12.9742, 77.5940, 175.0),
+        ("geo_robotics", "Autonomous Mechatronics Arena & Drone Field", "dept_robotics", 12.9760, 77.5995, 210.0),
+        ("geo_biomed", "Bio-Instrumentation & Genomic Informatics Lab", "dept_biomed", 12.9705, 77.5930, 170.0),
+        ("geo_mech", "Mechanical Engineering & Thermal Research Hall", "dept_mech", 12.9690, 77.5920, 220.0),
+        ("geo_aero", "Aerospace Propulsion & Wind Tunnel Facility", "dept_aero", 12.9775, 77.6010, 250.0),
+        ("geo_civil", "Sustainable Smart Cities & Geomatics Complex", "dept_civil", 12.9680, 77.5910, 200.0)
+    ]
+
+    for g_id, name, d_id, lat, lng, radius in geofences_data:
+        mock_geofence_db[g_id] = {
+            "id": g_id,
+            "name": name,
+            "department_id": d_id,
+            "center_lat": lat,
+            "center_lng": lng,
+            "radius_meters": radius,
+            "coordinates": [
+                {"lat": round(lat + 0.0010, 4), "lng": round(lng - 0.0010, 4)},
+                {"lat": round(lat + 0.0010, 4), "lng": round(lng + 0.0010, 4)},
+                {"lat": round(lat - 0.0010, 4), "lng": round(lng + 0.0010, 4)},
+                {"lat": round(lat - 0.0010, 4), "lng": round(lng - 0.0010, 4)}
+            ]
+        }
 
     # 4. SAMPLE LEAVE REQUESTS (Pending, Approved, Rejected)
     mock_leaves_db.clear()
