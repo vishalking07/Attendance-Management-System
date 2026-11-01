@@ -25,7 +25,8 @@ app = FastAPI(
 # Enable CORS for Vite frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust for production
+    allow_origins=["*"],
+    allow_origin_regex=".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -72,7 +73,7 @@ async def shutdown_event():
     shutdown_scheduler()
     await close_mongo_connection()
 
-# Include Routers
+# Include Routers with /api/v1 prefix
 app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(users.router, prefix=settings.API_V1_STR)
 app.include_router(departments.router, prefix=settings.API_V1_STR)
@@ -89,6 +90,24 @@ app.include_router(ledger.router, prefix=settings.API_V1_STR)
 app.include_router(chatbot.router, prefix=settings.API_V1_STR)
 app.include_router(admin.router, prefix=settings.API_V1_STR)
 app.include_router(notifications.router, prefix=settings.API_V1_STR)
+
+# Also mount without /api/v1 prefix for zero-config fallback (so /auth/login works directly too!)
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(departments.router)
+app.include_router(geofence.router)
+app.include_router(attendance.router)
+app.include_router(otp.router)
+app.include_router(corrections.router)
+app.include_router(leaves.router)
+app.include_router(predictions.router)
+app.include_router(prognosis.router)
+app.include_router(smart_pass.router)
+app.include_router(counseling_ai.router)
+app.include_router(ledger.router)
+app.include_router(chatbot.router)
+app.include_router(admin.router)
+app.include_router(notifications.router)
 
 @app.get("/")
 async def root():
