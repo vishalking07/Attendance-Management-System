@@ -34,13 +34,38 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     logger.info("Initializing Smart Attendance & Risk Prediction System Backend...")
-    await connect_to_mongo()
-    start_scheduler()
-    train_risk_prediction_model()  # Initialize & fit XGBoost model
+    try:
+        await connect_to_mongo()
+    except Exception as e:
+        logger.warning(f"Mongo connection notice: {e}")
+
+    try:
+        start_scheduler()
+    except Exception as e:
+        logger.warning(f"Scheduler notice: {e}")
+
+    try:
+        train_risk_prediction_model()  # Initialize & fit XGBoost model
+    except Exception as e:
+        logger.warning(f"Risk model training notice: {e}")
     
     # Auto-seed mock data for immediate demo readiness
-    from seed import seed_database_data
-    seed_database_data()
+    try:
+        import sys, os
+        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if backend_dir not in sys.path:
+            sys.path.insert(0, backend_dir)
+        try:
+            from app.seed import seed_database_data
+        except ImportError:
+            from seed import seed_database_data
+        seed_database_data()
+    except Exception as e:
+        logger.warning(f"Auto-seed notice: {e}")
+
+@app.get("/healthz")
+async def healthz():
+    return {"status": "ok", "service": "online"}
 
 @app.on_event("shutdown")
 async def shutdown_event():
