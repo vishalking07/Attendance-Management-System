@@ -4,10 +4,10 @@ import AICounselingDossierModal from '../../components/AICounselingDossierModal'
 
 const MeetingLog = () => {
   const [meetings, setMeetings] = useState([
-    { id: 'm1', student: 'Sarah Jenkins', date: '2026-09-07', notes: 'Discussed low attendance in morning sessions. Advised on study timetable.', outcome: 'Agreed on weekly progress check' }
+    { id: 'm1', student: 'Vishal', date: '2026-09-07', notes: 'Discussed project architecture and high attendance targets in morning sessions.', outcome: 'Agreed on weekly progress check' }
   ]);
 
-  const [form, setForm] = useState({ student: 'Sarah Jenkins', notes: '', outcome: '' });
+  const [form, setForm] = useState({ student: 'Vishal', notes: '', outcome: '' });
   const [isDossierOpen, setIsDossierOpen] = useState(false);
 
   const handleAddMeeting = (e) => {
@@ -19,7 +19,7 @@ const MeetingLog = () => {
       notes: form.notes,
       outcome: form.outcome
     }, ...meetings]);
-    setForm({ student: 'Sarah Jenkins', notes: '', outcome: '' });
+    setForm({ student: 'Vishal', notes: '', outcome: '' });
   };
 
   return (
@@ -58,9 +58,9 @@ const MeetingLog = () => {
                 onChange={(e) => setForm({...form, student: e.target.value})}
                 className="w-full bg-[#FAF8FE] border border-purple-100 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-400"
               >
-                <option value="Sarah Jenkins">Sarah Jenkins (At-Risk)</option>
+                <option value="Vishal">Vishal (Team Lead / CS)</option>
+                <option value="Nithishkumar">Nithishkumar (Teammate / AI-DS)</option>
                 <option value="Marcus Vance">Marcus Vance (Debarment Warning)</option>
-                <option value="Alex Smith">Alex Smith (Honor Roll)</option>
                 <option value="David Kumar">David Kumar (Standard)</option>
               </select>
             </div>

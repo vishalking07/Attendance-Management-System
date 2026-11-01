@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import { X, Scan, CheckCircle2, AlertCircle, ShieldCheck, UserCheck, Sparkles, Building2, Camera, KeyRound, RefreshCw, QrCode, Radio, WifiOff, MapPin, Copy, Check } from 'lucide-react';
 import api from '../api/client';
@@ -17,12 +17,41 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
   const [cameraBlocked, setCameraBlocked] = useState(false);
 
   const sampleStudents = [
-    { id: 'usr_student_2', name: 'Sarah Jenkins (At-Risk / Target)', email: 'sarah.jenkins@student.bioxai.edu' },
-    { id: 'usr_student_1', name: 'Alex Smith (High Attendance)', email: 'alex.smith@student.bioxai.edu' },
+    { id: 'usr_student_1', name: 'Vishal (Team Lead / CS)', email: 'vishal@student.bioxai.edu' },
+    { id: 'usr_student_2', name: 'Nithishkumar (Teammate / AI-DS)', email: 'nithishkumar@student.bioxai.edu' },
     { id: 'usr_student_3', name: 'David Kumar (Moderate Risk)', email: 'david.kumar@student.bioxai.edu' },
     { id: 'usr_student_4', name: 'Emily Chen (High Risk)', email: 'emily.chen@student.bioxai.edu' },
     { id: 'usr_student_7', name: 'Rohan Patel (Shortage Warning)', email: 'rohan.patel@student.bioxai.edu' }
   ];
+
+  const [studentList, setStudentList] = useState(sampleStudents);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Fetch live active beacon
+    api.get('/geofence/active-session')
+      .then(res => {
+        if (res.data) {
+          if (res.data.session_pin) setBroadcastPin(res.data.session_pin);
+          if (res.data.classroom_name) setLocation(res.data.classroom_name);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch full 20 student list
+    api.get('/users?role=STUDENT')
+      .then(res => {
+        if (res.data && res.data.length > 0) {
+          setStudentList(res.data.map(u => ({
+            id: u.id,
+            name: `${u.name} (${u.department_id ? u.department_id.replace('dept_', '').toUpperCase() : 'STUDENT'})`,
+            email: u.email
+          })));
+        }
+      })
+      .catch(() => {});
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -45,10 +74,10 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
           if (onAttendanceMarked) onAttendanceMarked();
         }
       } catch (err) {
-        const selected = sampleStudents.find(s => s.id === studentId);
+        const selected = studentList.find(s => s.id === studentId);
         setSuccessResult({
           status: 'VERIFIED_PRESENT',
-          student_name: selected ? selected.name.split(' (')[0] : 'Sarah Jenkins',
+          student_name: selected ? selected.name.split(' (')[0] : 'Vishal',
           student_id: studentId,
           marked_at: new Date().toISOString(),
           ledger_block_height: 1421,
@@ -86,10 +115,10 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
         if (onAttendanceMarked) onAttendanceMarked();
       }
     } catch (err) {
-      const selected = sampleStudents.find(s => s.id === studentId);
+      const selected = studentList.find(s => s.id === studentId);
       setSuccessResult({
         status: 'VERIFIED_PRESENT',
-        student_name: selected ? selected.name.split(' (')[0] : 'Sarah Jenkins',
+        student_name: selected ? selected.name.split(' (')[0] : 'Vishal',
         student_id: studentId,
         marked_at: new Date().toISOString(),
         ledger_block_height: 1421,
@@ -120,10 +149,10 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
         if (onAttendanceMarked) onAttendanceMarked();
       }
     } catch (err) {
-      const selected = sampleStudents.find(s => s.id === studentId);
+      const selected = studentList.find(s => s.id === studentId);
       setSuccessResult({
         status: 'VERIFIED_PRESENT',
-        student_name: selected ? selected.name.split(' (')[0] : 'Sarah Jenkins',
+        student_name: selected ? selected.name.split(' (')[0] : 'Vishal',
         student_id: studentId,
         marked_at: new Date().toISOString(),
         ledger_block_height: 1423,
@@ -141,13 +170,17 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
     const newPin = `${Math.floor(100000 + Math.random() * 900000)}`;
     setBroadcastPin(newPin);
     try {
-      await api.post('/geofence/beacon/update', {
+      const res = await api.post('/geofence/beacon/update', {
         classroom_name: location,
         faculty_lat: 12.9716,
         faculty_lng: 77.5946,
         course_code: 'CS801',
-        radius_meters: 500.0
+        radius_meters: 500.0,
+        session_pin: newPin
       });
+      if (res.data?.beacon?.session_pin) {
+        setBroadcastPin(res.data.beacon.session_pin);
+      }
     } catch (e) {
       // safe fallback
     }
@@ -315,7 +348,7 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
                   onChange={(e) => setStudentId(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#7C3AED] focus:outline-none"
                 >
-                  {sampleStudents.map((s) => (
+                  {studentList.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
@@ -406,7 +439,7 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
                   onChange={(e) => setStudentId(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#7C3AED] focus:outline-none"
                 >
-                  {sampleStudents.map((s) => (
+                  {studentList.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
@@ -484,7 +517,7 @@ const FacultyScannerModal = ({ isOpen, onClose, onAttendanceMarked }) => {
                   onChange={(e) => setStudentId(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#7C3AED] focus:outline-none"
                 >
-                  {sampleStudents.map((s) => (
+                  {studentList.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name} ({s.id})
                     </option>

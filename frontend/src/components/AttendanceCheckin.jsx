@@ -126,6 +126,36 @@ const AttendanceCheckin = () => {
     );
   };
 
+  // Direct check-in via Faculty Broadcast PIN / OTP (Strict 500m geofence enforced)
+  const handleDirectClassPinCheckin = async () => {
+    if (!classPinInput || classPinInput.trim().length !== 6) {
+      setError("Please enter the 6-digit Classroom Beacon PIN broadcast by the instructor.");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+
+    const lat = simulatedDistanceMode === 'OUT_OF_RANGE' ? 12.9790 : (location?.lat || 12.9716);
+    const lng = simulatedDistanceMode === 'OUT_OF_RANGE' ? 77.6020 : (location?.lng || 77.5946);
+
+    try {
+      const res = await api.post('/attendance/class-pin-checkin', {
+        student_id: user?.id,
+        class_pin: classPinInput.trim(),
+        lat: lat,
+        lng: lng,
+        wifi_ssid: wifiSsid
+      });
+      setLoading(false);
+      setCheckinResult(res.data);
+      setStep(4);
+    } catch (err) {
+      setLoading(false);
+      const msg = err.response?.data?.detail || "Class PIN Verification Failed.";
+      setError(msg);
+    }
+  };
+
   // Fallback handlers for when webcam is blocked or unavailable
   const handleUseSimulatedSnapshot = () => {
     const simFace = generateSyntheticFace(user?.name || "Student Specimen", "FRONT");
@@ -376,16 +406,29 @@ const AttendanceCheckin = () => {
               placeholder="e.g. 482910 from projector"
               className="w-full px-3 py-2 rounded-xl bg-white border border-purple-200 text-xs font-mono font-bold text-[#5B21B6] focus:outline-none focus:ring-2 focus:ring-purple-400 tracking-wider"
             />
+            {classPinInput.length === 6 && (
+              <button
+                type="button"
+                onClick={handleDirectClassPinCheckin}
+                disabled={loading}
+                className="w-full mt-2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition flex items-center justify-center space-x-1.5"
+              >
+                {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <KeyRound className="w-3.5 h-3.5" />}
+                <span>⚡ Instant Submit via Class PIN (500m Geofence)</span>
+              </button>
+            )}
           </div>
 
-          <button
-            onClick={handleFetchDualSignal}
-            disabled={loading}
-            className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-700 to-[#7C3AED] text-white font-black text-xs shadow-lg shadow-purple-600/30 hover:opacity-95 transition flex items-center justify-center mx-auto space-x-2"
-          >
-            {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
-            <span>Lock 500m Proximity & Proceed to Biometrics</span>
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 max-w-sm mx-auto">
+            <button
+              onClick={handleFetchDualSignal}
+              disabled={loading}
+              className="w-full px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-700 to-[#7C3AED] text-white font-black text-xs shadow-lg shadow-purple-600/30 hover:opacity-95 transition flex items-center justify-center space-x-2"
+            >
+              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+              <span>Lock 500m & Proceed to Face Biometrics</span>
+            </button>
+          </div>
 
           <div className="pt-1">
             <button

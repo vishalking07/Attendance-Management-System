@@ -4,7 +4,7 @@ import { X, Camera, CheckCircle2, ShieldCheck, RefreshCw, Sparkles, UserCheck, A
 import api from '../api/client';
 import { generateSyntheticFace } from '../utils/faceSimulator';
 
-const BiometricEnrollModal = ({ isOpen, onClose, studentId, studentName = 'Sarah Jenkins', onEnrolled }) => {
+const BiometricEnrollModal = ({ isOpen, onClose, studentId, studentName = 'Vishal', onEnrolled }) => {
   const webcamRef = useRef(null);
   const fileInputRef = useRef(null);
   const [capturedImages, setCapturedImages] = useState([]);

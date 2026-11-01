@@ -222,7 +222,7 @@ const MentorDashboard = () => {
             </span>
           </div>
           <p className="text-rose-800 text-[11px] mt-0.5 leading-relaxed">
-            Mentee <strong>Sarah Jenkins (-3.4%/wk)</strong> and <strong>Marcus Vance (-4.2%/wk)</strong> have accelerating absence momentum. Risk of semester debarment within 14 days without active intervention.
+            Mentee <strong>Emily Chen (-3.4%/wk)</strong> and <strong>Marcus Vance (-4.2%/wk)</strong> have accelerating absence momentum. Risk of semester debarment within 14 days without active intervention.
           </p>
         </div>
       </div>

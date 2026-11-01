@@ -43,6 +43,51 @@ def seed_database_data():
     mentor_pw = get_password_hash("Mentor@123")
     student_pw = get_password_hash("Student@123")
 
+    # Real non-animated person portrait photos (Unsplash high-resolution human portraits)
+    REAL_STUDENT_PHOTOS = [
+        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=250&auto=format&fit=crop&q=80", # 1. Vishal (Young man)
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=250&auto=format&fit=crop&q=80", # 2. Nithishkumar (Young man)
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=250&auto=format&fit=crop&q=80", # 3. David Kumar
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=250&auto=format&fit=crop&q=80", # 4. Emily Chen
+        "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=250&auto=format&fit=crop&q=80", # 5. Michael Scott
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80", # 6. Priya Sharma
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=250&auto=format&fit=crop&q=80", # 7. Rohan Patel
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=250&auto=format&fit=crop&q=80", # 8. Ananya Iyer
+        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=250&auto=format&fit=crop&q=80", # 9. Vikram Singh
+        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=250&auto=format&fit=crop&q=80", # 10. Kavya Nair
+        "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=250&auto=format&fit=crop&q=80", # 11. Arjun Reddy
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=250&auto=format&fit=crop&q=80", # 12. Sneha Sen
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=250&auto=format&fit=crop&q=80", # 13. Karthik Raja
+        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=250&auto=format&fit=crop&q=80", # 14. Meera Krishnan
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=250&auto=format&fit=crop&q=80", # 15. Abhinav Gupta
+        "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=250&auto=format&fit=crop&q=80", # 16. Divya Balan
+        "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=250&auto=format&fit=crop&q=80", # 17. Sanjay Varma
+        "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=250&auto=format&fit=crop&q=80", # 18. Keerthi Suresh
+        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=250&auto=format&fit=crop&q=80", # 19. Harish Kumar
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80", # 20. Shalini Menon
+    ]
+
+    REAL_FACULTY_PHOTOS = [
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1519741497674-611481863552?w=250&auto=format&fit=crop&q=80"
+    ]
+
+    REAL_MENTOR_PHOTOS = [
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=250&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=250&auto=format&fit=crop&q=80"
+    ]
+
     # 2. USERS
     # Admin
     mock_users_db["admin@bioxai.edu"] = {
@@ -53,25 +98,25 @@ def seed_database_data():
         "role": "ADMIN",
         "department_id": None,
         "mentor_id": None,
-        "profile_photo": "https://api.dicebear.com/7.x/avataaars/svg?seed=Eleanor",
+        "profile_photo": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=250&auto=format&fit=crop&q=80",
         "password_hash": admin_pw
     }
 
     # 10 HODs (One for each Department)
     hods_data = [
-        ("usr_hod_cs", "Prof. Robert Langdon (HOD CS)", "hod.cs@bioxai.edu", "dept_cs", "Robert"),
-        ("usr_hod_aids", "Dr. Yoshua Bengio (HOD AI-DS)", "hod.aids@bioxai.edu", "dept_ai_ds", "Yoshua"),
-        ("usr_hod_ece", "Prof. Clara Oswald (HOD ECE)", "hod.ece@bioxai.edu", "dept_ece", "Clara"),
-        ("usr_hod_it", "Dr. Dennis Ritchie (HOD IT)", "hod.it@bioxai.edu", "dept_it", "Dennis"),
-        ("usr_hod_cyber", "Dr. Kevin Mitnick (HOD Cyber)", "hod.cyber@bioxai.edu", "dept_cyber", "Kevin"),
-        ("usr_hod_robotics", "Dr. Rodney Brooks (HOD Robotics)", "hod.robotics@bioxai.edu", "dept_robotics", "Rodney"),
-        ("usr_hod_biomed", "Dr. Rosalind Franklin (HOD BioMed)", "hod.biomed@bioxai.edu", "dept_biomed", "Rosalind"),
-        ("usr_hod_mech", "Prof. James Watt (HOD Mech)", "hod.mech@bioxai.edu", "dept_mech", "James"),
-        ("usr_hod_aero", "Dr. A.P.J. Abdul Kalam (HOD Aero)", "hod.aero@bioxai.edu", "dept_aero", "Kalam"),
-        ("usr_hod_civil", "Prof. M. Visvesvaraya (HOD Civil)", "hod.civil@bioxai.edu", "dept_civil", "Mokshagundam")
+        ("usr_hod_cs", "Prof. Robert Langdon (HOD CS)", "hod.cs@bioxai.edu", "dept_cs"),
+        ("usr_hod_aids", "Dr. Yoshua Bengio (HOD AI-DS)", "hod.aids@bioxai.edu", "dept_ai_ds"),
+        ("usr_hod_ece", "Prof. Clara Oswald (HOD ECE)", "hod.ece@bioxai.edu", "dept_ece"),
+        ("usr_hod_it", "Dr. Dennis Ritchie (HOD IT)", "hod.it@bioxai.edu", "dept_it"),
+        ("usr_hod_cyber", "Dr. Kevin Mitnick (HOD Cyber)", "hod.cyber@bioxai.edu", "dept_cyber"),
+        ("usr_hod_robotics", "Dr. Rodney Brooks (HOD Robotics)", "hod.robotics@bioxai.edu", "dept_robotics"),
+        ("usr_hod_biomed", "Dr. Rosalind Franklin (HOD BioMed)", "hod.biomed@bioxai.edu", "dept_biomed"),
+        ("usr_hod_mech", "Prof. James Watt (HOD Mech)", "hod.mech@bioxai.edu", "dept_mech"),
+        ("usr_hod_aero", "Dr. A.P.J. Abdul Kalam (HOD Aero)", "hod.aero@bioxai.edu", "dept_aero"),
+        ("usr_hod_civil", "Prof. M. Visvesvaraya (HOD Civil)", "hod.civil@bioxai.edu", "dept_civil")
     ]
 
-    for h_id, name, email, d_id, seed_av in hods_data:
+    for idx, (h_id, name, email, d_id) in enumerate(hods_data):
         mock_users_db[email] = {
             "id": h_id,
             "name": name,
@@ -80,7 +125,7 @@ def seed_database_data():
             "role": "HOD",
             "department_id": d_id,
             "mentor_id": None,
-            "profile_photo": f"https://api.dicebear.com/7.x/avataaars/svg?seed={seed_av}",
+            "profile_photo": REAL_FACULTY_PHOTOS[idx % len(REAL_FACULTY_PHOTOS)],
             "password_hash": hod_pw
         }
 
@@ -93,7 +138,7 @@ def seed_database_data():
         "role": "MENTOR",
         "department_id": "dept_cs",
         "mentor_id": None,
-        "profile_photo": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alan",
+        "profile_photo": REAL_MENTOR_PHOTOS[0],
         "password_hash": mentor_pw
     }
     mock_users_db["mentor2.cs@bioxai.edu"] = {
@@ -104,7 +149,7 @@ def seed_database_data():
         "role": "MENTOR",
         "department_id": "dept_ai_ds",
         "mentor_id": None,
-        "profile_photo": "https://api.dicebear.com/7.x/avataaars/svg?seed=Grace",
+        "profile_photo": REAL_MENTOR_PHOTOS[1],
         "password_hash": mentor_pw
     }
     mock_users_db["mentor3.ece@bioxai.edu"] = {
@@ -115,7 +160,7 @@ def seed_database_data():
         "role": "MENTOR",
         "department_id": "dept_ece",
         "mentor_id": None,
-        "profile_photo": "https://api.dicebear.com/7.x/avataaars/svg?seed=Tesla",
+        "profile_photo": REAL_MENTOR_PHOTOS[2],
         "password_hash": mentor_pw
     }
     mock_users_db["mentor4.it@bioxai.edu"] = {
@@ -126,7 +171,7 @@ def seed_database_data():
         "role": "MENTOR",
         "department_id": "dept_it",
         "mentor_id": None,
-        "profile_photo": "https://api.dicebear.com/7.x/avataaars/svg?seed=Tim",
+        "profile_photo": REAL_MENTOR_PHOTOS[3],
         "password_hash": mentor_pw
     }
     mock_users_db["mentor5.mech@bioxai.edu"] = {
@@ -137,22 +182,32 @@ def seed_database_data():
         "role": "MENTOR",
         "department_id": "dept_mech",
         "mentor_id": None,
-        "profile_photo": "https://api.dicebear.com/7.x/avataaars/svg?seed=Curie",
+        "profile_photo": REAL_MENTOR_PHOTOS[4],
         "password_hash": mentor_pw
     }
 
-    # 10 Diverse Students Distributed Across All 10 Departments
+    # 20 Diverse Students with Vishal & Nithishkumar as Teammates
     students_data = [
-        ("Alex Smith", "alex.smith@student.bioxai.edu", "dept_cs", "usr_mentor1", 93.5, 88.0, 95.0, 0, 0),
-        ("Sarah Jenkins", "sarah.jenkins@student.bioxai.edu", "dept_ai_ds", "usr_mentor2", 64.0, 54.0, 68.0, 4, 3), # At Risk!
-        ("David Kumar", "david.kumar@student.bioxai.edu", "dept_ece", "usr_mentor3", 85.0, 78.0, 86.0, 1, 0),
-        ("Emily Chen", "emily.chen@student.bioxai.edu", "dept_it", "usr_mentor4", 58.0, 48.0, 60.0, 5, 2), # High Risk!
-        ("Michael Scott", "michael.scott@student.bioxai.edu", "dept_mech", "usr_mentor5", 76.0, 72.0, 78.0, 2, 1),
-        ("Priya Sharma", "priya.sharma@student.bioxai.edu", "dept_cyber", "usr_mentor1", 89.0, 84.0, 90.0, 1, 0),
-        ("Rohan Patel", "rohan.patel@student.bioxai.edu", "dept_robotics", "usr_mentor3", 71.0, 66.0, 74.0, 3, 2), # Shortage Warning!
-        ("Ananya Iyer", "ananya.iyer@student.bioxai.edu", "dept_biomed", "usr_mentor5", 96.0, 92.0, 98.0, 0, 0), # Star Performer
-        ("Vikram Singh", "vikram.singh@student.bioxai.edu", "dept_aero", "usr_mentor5", 52.0, 45.0, 55.0, 6, 3), # Severe Deficit
-        ("Kavya Nair", "kavya.nair@student.bioxai.edu", "dept_civil", "usr_mentor2", 82.0, 80.0, 85.0, 1, 1)
+        ("Vishal", "vishal@student.bioxai.edu", "dept_cs", "usr_mentor1", 93.5, 88.0, 95.0, 0, 0), # 1. Teammate 1 / Lead
+        ("Nithishkumar", "nithishkumar@student.bioxai.edu", "dept_ai_ds", "usr_mentor2", 84.0, 78.0, 86.0, 1, 0), # 2. Teammate 2
+        ("David Kumar", "david.kumar@student.bioxai.edu", "dept_ece", "usr_mentor3", 85.0, 78.0, 86.0, 1, 0), # 3.
+        ("Emily Chen", "emily.chen@student.bioxai.edu", "dept_it", "usr_mentor4", 58.0, 48.0, 60.0, 5, 2), # 4. High Risk!
+        ("Michael Scott", "michael.scott@student.bioxai.edu", "dept_mech", "usr_mentor5", 76.0, 72.0, 78.0, 2, 1), # 5.
+        ("Priya Sharma", "priya.sharma@student.bioxai.edu", "dept_cyber", "usr_mentor1", 89.0, 84.0, 90.0, 1, 0), # 6.
+        ("Rohan Patel", "rohan.patel@student.bioxai.edu", "dept_robotics", "usr_mentor3", 71.0, 66.0, 74.0, 3, 2), # 7. Shortage Warning!
+        ("Ananya Iyer", "ananya.iyer@student.bioxai.edu", "dept_biomed", "usr_mentor5", 96.0, 92.0, 98.0, 0, 0), # 8. Star Performer
+        ("Vikram Singh", "vikram.singh@student.bioxai.edu", "dept_aero", "usr_mentor5", 52.0, 45.0, 55.0, 6, 3), # 9. Severe Deficit
+        ("Kavya Nair", "kavya.nair@student.bioxai.edu", "dept_civil", "usr_mentor2", 82.0, 80.0, 85.0, 1, 1), # 10.
+        ("Arjun Reddy", "arjun.reddy@student.bioxai.edu", "dept_cs", "usr_mentor1", 91.0, 86.0, 92.0, 0, 0), # 11.
+        ("Sneha Sen", "sneha.sen@student.bioxai.edu", "dept_ai_ds", "usr_mentor2", 73.5, 68.0, 72.0, 3, 1), # 12. Warning 73.5%
+        ("Karthik Raja", "karthik.raja@student.bioxai.edu", "dept_ece", "usr_mentor3", 62.0, 54.0, 65.0, 4, 2), # 13. High Risk
+        ("Meera Krishnan", "meera.krishnan@student.bioxai.edu", "dept_it", "usr_mentor4", 88.5, 82.0, 89.0, 1, 0), # 14.
+        ("Abhinav Gupta", "abhinav.gupta@student.bioxai.edu", "dept_cyber", "usr_mentor1", 95.0, 91.0, 96.0, 0, 0), # 15. Honor Roll
+        ("Divya Balan", "divya.balan@student.bioxai.edu", "dept_robotics", "usr_mentor3", 77.0, 74.0, 80.0, 2, 0), # 16.
+        ("Sanjay Varma", "sanjay.varma@student.bioxai.edu", "dept_biomed", "usr_mentor5", 54.0, 46.0, 52.0, 5, 2), # 17. High Risk Deficit
+        ("Keerthi Suresh", "keerthi.suresh@student.bioxai.edu", "dept_mech", "usr_mentor5", 83.0, 79.0, 85.0, 1, 1), # 18.
+        ("Harish Kumar", "harish.kumar@student.bioxai.edu", "dept_aero", "usr_mentor5", 74.0, 70.0, 76.0, 2, 1), # 19. Borderline 74%
+        ("Shalini Menon", "shalini.menon@student.bioxai.edu", "dept_civil", "usr_mentor2", 92.5, 89.0, 94.0, 0, 0) # 20. Consistent
     ]
 
     for idx, (name, email, d_id, m_id, att, ex, asg, l_cnt, c_cnt) in enumerate(students_data):
@@ -165,7 +220,7 @@ def seed_database_data():
             "role": "STUDENT",
             "department_id": d_id,
             "mentor_id": m_id,
-            "profile_photo": f"https://api.dicebear.com/7.x/avataaars/svg?seed={name.replace(' ', '')}",
+            "profile_photo": REAL_STUDENT_PHOTOS[idx % len(REAL_STUDENT_PHOTOS)],
             "password_hash": student_pw
         }
         
@@ -189,9 +244,9 @@ def seed_database_data():
             "created_at": datetime.utcnow().isoformat()
         }
 
-        # Seed 14 days of realistic attendance history
+        # Seed 14 days of realistic past attendance history (yesterday backwards)
         today = datetime.now()
-        for d in range(14):
+        for d in range(1, 15):
             past_date = (today - timedelta(days=d)).strftime("%Y-%m-%d")
             # Determine status based on student attendance rate
             if att < 60:
@@ -258,8 +313,8 @@ def seed_database_data():
     mock_leaves_db.extend([
         {
             "id": "leave_1",
-            "student_id": "usr_student_2",
-            "student_name": "Sarah Jenkins",
+            "student_id": "usr_student_1",
+            "student_name": "Vishal",
             "department_id": "dept_cs",
             "reason": "Viral fever and acute migraine symptoms",
             "from_date": (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d"),
@@ -297,9 +352,9 @@ def seed_database_data():
         },
         {
             "id": "leave_4",
-            "student_id": "usr_student_4",
-            "student_name": "Emily Chen",
-            "department_id": "dept_cs",
+            "student_id": "usr_student_2",
+            "student_name": "Nithishkumar",
+            "department_id": "dept_ai_ds",
             "reason": "Family emergency and clinical hospitalization assistance",
             "from_date": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"),
             "to_date": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d"),
@@ -315,8 +370,8 @@ def seed_database_data():
     mock_corrections_db.extend([
         {
             "id": "corr_1",
-            "student_id": "usr_student_2",
-            "student_name": "Sarah Jenkins",
+            "student_id": "usr_student_1",
+            "student_name": "Vishal",
             "department_id": "dept_cs",
             "date": (datetime.now() - timedelta(days=3)).strftime("%Y-%m-%d"),
             "reason": "Webcam liveness check glitched due to low lighting in seminar room 302",

@@ -19,6 +19,7 @@ class BeaconUpdateRequest(BaseModel):
     radius_meters: Optional[float] = 500.0
     period_number: Optional[int] = 1
     period_time: Optional[str] = "09:00 - 10:00 AM"
+    session_pin: Optional[str] = None
 
 @router.get("", response_model=List[GeofenceZoneResponse])
 async def list_geofence_zones(current_user: TokenData = Depends(get_current_user)):
@@ -63,7 +64,7 @@ async def update_faculty_beacon(
     Anchors attendance strictly within 500 meters of this dynamic location.
     """
     session_id = f"sess_{current_user.user_id}_{datetime.now().strftime('%H%M%S')}"
-    new_pin = f"{random.randint(100000, 999999)}"
+    new_pin = payload.session_pin or f"{random.randint(100000, 999999)}"
     
     updated_session = {
         "session_id": session_id,

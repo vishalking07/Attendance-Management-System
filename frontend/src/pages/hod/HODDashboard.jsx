@@ -152,13 +152,13 @@ const HODDashboard = () => {
               1 Escalated Mentoring Dossier Awaiting HOD Endorsement
             </span>
             <p className="text-purple-800 text-[11px] mt-0.5">
-              Dr. Alan Turing submitted an AI counseling recovery plan for <strong>Sarah Jenkins (62.0% attendance)</strong>.
+              Dr. Alan Turing submitted an AI counseling recovery plan for <strong>Vishal (CS Department)</strong>.
             </p>
           </div>
         </div>
         <button
           onClick={() => {
-            setSelectedStudent({ id: 'usr_student_2', name: 'Sarah Jenkins' });
+            setSelectedStudent({ id: 'usr_student_1', name: 'Vishal' });
             setIsDossierOpen(true);
           }}
           className="px-3.5 py-1.5 rounded-xl bg-[#7C3AED] hover:bg-purple-700 text-white font-bold text-xs transition shadow-sm font-heading flex-shrink-0"

@@ -36,6 +36,9 @@ async def verify_attendance_otp(
         )
         raise HTTPException(status_code=400, detail=message)
 
+    # Retrieve active classroom session or fallback
+    active_session = next((s for s in mock_sessions_db.values() if s.get("is_active")), None)
+
     # Mark Attendance PRESENT
     record_id = f"att_{len(mock_attendance_db) + 1}"
     today_str = session.get("date", datetime.now().strftime("%Y-%m-%d"))
@@ -52,7 +55,14 @@ async def verify_attendance_otp(
         "marked_at": datetime.utcnow().isoformat(),
         "session_id": session_id,
         "wifi_verified": session.get("wifi_verified", False),
-        "liveness_score": session.get("liveness_score", 0.95)
+        "liveness_score": session.get("liveness_score", 0.95),
+        "period_number": session.get("period_number") or (active_session.get("period_number", 1) if active_session else 1),
+        "period_time": session.get("period_time") or (active_session.get("period_time", "09:00 - 10:00 AM") if active_session else "09:00 - 10:00 AM"),
+        "course_code": session.get("course_code") or (active_session.get("course_code", "CS801") if active_session else "CS801"),
+        "course_name": session.get("course_name") or (active_session.get("course_name", "Distributed Systems & Cloud Security") if active_session else "Distributed Systems & Cloud Security"),
+        "classroom_name": session.get("classroom_name") or (active_session.get("classroom_name", "Lecture Hall CS-301") if active_session else "Lecture Hall CS-301"),
+        "faculty_name": session.get("faculty_name") or (active_session.get("faculty_name", "Dr. Rajesh Ramanathan") if active_session else "Dr. Rajesh Ramanathan"),
+        "faculty_distance_m": session.get("faculty_distance_m", 24.5)
     }
 
     # Append to Cryptographic Ledger
@@ -80,5 +90,10 @@ async def verify_attendance_otp(
     return {
         "status": "SUCCESS",
         "message": "2FA OTP verified successfully! Attendance marked PRESENT.",
-        "record": new_record
+        "record": new_record,
+        "ledger_receipt": {
+            "block_height": ledger_block["block_height"],
+            "block_hash": ledger_block["block_hash"][:16] + "...",
+            "dual_signal": "GPS + WiFi Verified" if session.get("wifi_verified") else "GPS Only"
+        }
     }

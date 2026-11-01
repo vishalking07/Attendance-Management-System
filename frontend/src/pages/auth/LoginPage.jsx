@@ -70,7 +70,7 @@ const LoginPage = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="sarah.jenkins@student.bioxai.edu"
+                placeholder="vishal@student.bioxai.edu"
                 className="w-full bg-purple-50/40 border border-purple-100 rounded-2xl py-2.5 pl-10 pr-4 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
                 required
               />
@@ -129,10 +129,16 @@ const LoginPage = () => {
               👨‍🏫 Mentor
             </button>
             <button
-              onClick={() => handleQuickLogin('sarah.jenkins@student.bioxai.edu', 'Student@123')}
+              onClick={() => handleQuickLogin('vishal@student.bioxai.edu', 'Student@123')}
               className="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white border border-purple-600 text-left transition font-bold truncate shadow-sm"
             >
-              👨‍🎓 Student (Sarah)
+              👨‍🎓 Vishal (Lead)
+            </button>
+            <button
+              onClick={() => handleQuickLogin('nithishkumar@student.bioxai.edu', 'Student@123')}
+              className="col-span-2 px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 text-left transition font-bold truncate"
+            >
+              👨‍🎓 Teammate: Nithishkumar (AI-DS)
             </button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, QrCode, RefreshCw, ShieldCheck, Clock, Building2, UserCheck, Sparkles } from 'lucide-react';
 import api from '../api/client';
+import { getPersonPhoto } from '../utils/avatarHelper';
 
 const SmartPassModal = ({ isOpen, onClose, student }) => {
   const [passData, setPassData] = useState({
@@ -11,9 +12,9 @@ const SmartPassModal = ({ isOpen, onClose, student }) => {
   const [timeLeft, setTimeLeft] = useState(30);
   const [refreshing, setRefreshing] = useState(false);
 
-  const studentId = student?.id || 'usr_student_2';
-  const studentName = student?.name || 'Sarah Jenkins';
-  const studentEmail = student?.email || 'sarah.jenkins@student.bioxai.edu';
+  const studentId = student?.id || 'usr_student_1';
+  const studentName = student?.name || 'Vishal';
+  const studentEmail = student?.email || 'vishal@student.bioxai.edu';
 
   useEffect(() => {
     if (!isOpen) return;
@@ -99,7 +100,7 @@ const SmartPassModal = ({ isOpen, onClose, student }) => {
           <div className="flex flex-col items-center">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-100 to-purple-200 border-2 border-purple-300 p-0.5 shadow-md relative">
               <img
-                src={student?.profile_photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${studentName}`}
+                src={student?.profile_photo?.includes('dicebear') ? getPersonPhoto(studentName) : (student?.profile_photo || getPersonPhoto(studentName))}
                 alt={studentName}
                 className="w-full h-full rounded-[14px] object-cover bg-white"
               />

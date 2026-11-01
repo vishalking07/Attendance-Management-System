@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Sparkles, TrendingUp, AlertTriangle, CheckCircle2, Sliders, Target, ShieldCheck } from 'lucide-react';
 import api from '../api/client';
 
-const WhatIfSimulatorModal = ({ isOpen, onClose, studentId, studentName = 'Sarah Jenkins', initialAtt = 78.5, initialExam = 72.0 }) => {
+const WhatIfSimulatorModal = ({ isOpen, onClose, studentId, studentName = 'Vishal', initialAtt = 78.5, initialExam = 72.0 }) => {
   const [additionalClasses, setAdditionalClasses] = useState(6);
   const [examTarget, setExamTarget] = useState(initialExam);
   const [assignmentTarget, setAssignmentTarget] = useState(85);

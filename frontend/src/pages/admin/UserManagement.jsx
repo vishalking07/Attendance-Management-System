@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Trash2, Shield, Search } from 'lucide-react';
 import api from '../../api/client';
+import { getPersonPhoto } from '../../utils/avatarHelper';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -119,7 +120,7 @@ const UserManagement = () => {
             {filteredUsers.map((u) => (
               <tr key={u.id} className="hover:bg-purple-50/40 transition">
                 <td className="p-4 flex items-center space-x-3">
-                  <img src={u.profile_photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`} className="w-8 h-8 rounded-full border border-purple-200" alt="" />
+                  <img src={u.profile_photo?.includes('dicebear') ? getPersonPhoto(u.name) : (u.profile_photo || getPersonPhoto(u.name))} className="w-8 h-8 rounded-full border border-purple-200 object-cover" alt="" />
                   <div>
                     <span className="font-bold text-slate-900 block">{u.name}</span>
                     <span className="text-[11px] text-slate-500">{u.email}</span>

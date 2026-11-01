@@ -34,8 +34,8 @@ const LedgerIntegrityModal = ({ isOpen, onClose, departmentId = 'dept_cs' }) => 
       {
         block_height: 1421,
         record_id: 'att_421',
-        student_name: 'Sarah Jenkins',
-        student_id: 'usr_student_2',
+        student_name: 'Vishal',
+        student_id: 'usr_student_1',
         timestamp: '2026-09-10T09:14:22Z',
         status: 'PRESENT',
         verification_method: 'BIOMETRIC_DIRECT',
@@ -46,8 +46,8 @@ const LedgerIntegrityModal = ({ isOpen, onClose, departmentId = 'dept_cs' }) => 
       {
         block_height: 1420,
         record_id: 'att_420',
-        student_name: 'Alex Smith',
-        student_id: 'usr_student_1',
+        student_name: 'Nithishkumar',
+        student_id: 'usr_student_2',
         timestamp: '2026-09-10T09:11:05Z',
         status: 'PRESENT',
         verification_method: 'SMART_PASS_DYNAMIC_QR',

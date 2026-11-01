@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Search, Bell } from 'lucide-react';
 import api from '../api/client';
+import { getPersonPhoto } from '../utils/avatarHelper';
 
 const Navbar = () => {
   const { user } = useAuth();
@@ -103,9 +104,9 @@ const Navbar = () => {
 
         {/* User Profile Pill matching reference design top-right */}
         <div className="flex items-center space-x-2.5 pl-1.5 pr-3 py-1 rounded-full bg-[#FAF8FE] border border-purple-100 shadow-sm">
-          <div className="w-8 h-8 rounded-full ring-2 ring-amber-400 p-0.5 overflow-hidden flex-shrink-0 bg-purple-100">
+          <div className="w-8 h-8 rounded-full ring-2 ring-purple-400 p-0.5 overflow-hidden flex-shrink-0 bg-purple-100 shadow-sm">
             <img
-              src={user?.profile_photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name}`}
+              src={user?.profile_photo?.includes('dicebear') ? getPersonPhoto(user?.name) : (user?.profile_photo || getPersonPhoto(user?.name))}
               alt="Profile"
               className="w-full h-full rounded-full object-cover"
             />

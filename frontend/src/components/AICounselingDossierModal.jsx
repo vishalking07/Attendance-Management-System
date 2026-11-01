@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Sparkles, Brain, CheckCircle2, ShieldAlert, Award, FileText, Send, UserCheck, AlertTriangle } from 'lucide-react';
 import api from '../api/client';
 
-const AICounselingDossierModal = ({ isOpen, onClose, studentId, studentName = 'Sarah Jenkins', userRole = 'MENTOR' }) => {
+const AICounselingDossierModal = ({ isOpen, onClose, studentId, studentName = 'Vishal', userRole = 'MENTOR' }) => {
   const [dossier, setDossier] = useState(null);
   const [loading, setLoading] = useState(false);
   const [hodRemarks, setHodRemarks] = useState('Approved for faculty remedial clinic and bi-weekly attendance check.');

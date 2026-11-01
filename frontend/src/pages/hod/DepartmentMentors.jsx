@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserCheck } from 'lucide-react';
 import api from '../../api/client';
+import { getPersonPhoto } from '../../utils/avatarHelper';
 
 const DepartmentMentors = () => {
   const [mentors, setMentors] = useState([]);
@@ -58,7 +59,7 @@ const DepartmentMentors = () => {
             return (
               <div key={m.id} className="app-card p-4 rounded-2xl border border-purple-100/90 flex items-center justify-between bg-white shadow-sm hover:border-purple-200 transition">
                 <div className="flex items-center space-x-3">
-                  <img src={m.profile_photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${m.name}`} className="w-10 h-10 rounded-full border border-purple-200" alt="" />
+                  <img src={m.profile_photo?.includes('dicebear') ? getPersonPhoto(m.name) : (m.profile_photo || getPersonPhoto(m.name))} className="w-10 h-10 rounded-full border border-purple-200 object-cover" alt="" />
                   <div>
                     <span className="font-bold text-slate-900 text-xs block font-heading">{m.name}</span>
                     <span className="text-[10px] text-slate-500">{m.email}</span>

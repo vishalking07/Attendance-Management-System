@@ -116,13 +116,13 @@ const StudentDashboard = () => {
             </div>
           </div>
 
-          {/* Right 3D Student Illustration Avatar from reference */}
+          {/* Right Student Portrait Avatar */}
           <div className="hidden md:flex items-center space-x-3 pr-2">
             <div className="relative">
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/15 backdrop-blur-md p-1.5 flex items-center justify-center border border-white/25 shadow-inner">
                 <img
-                  src="https://api.dicebear.com/7.x/bottts/svg?seed=Graduate&backgroundColor=b6e3f4"
-                  alt="Student 3D Illustration"
+                  src={user?.profile_photo?.includes('dicebear') ? "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80" : (user?.profile_photo || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80")}
+                  alt="Student Portrait"
                   className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover drop-shadow-md"
                 />
               </div>
@@ -315,42 +315,47 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: COURSE INSTRUCTORS & DAILY NOTICE */}
+        {/* RIGHT COLUMN: PROJECT TEAMMATES & DAILY NOTICE */}
         <div className="space-y-5">
-          {/* Section: Course Instructors matching reference */}
+          {/* Section: Project Teammates */}
           <div>
             <div className="flex items-center justify-between mb-2.5 px-0.5">
-              <h3 className="font-black text-xs uppercase tracking-wider text-slate-800 font-heading">
-                Course Instructors
+              <h3 className="font-black text-xs uppercase tracking-wider text-slate-800 font-heading flex items-center space-x-1.5">
+                <Users className="w-3.5 h-3.5 text-[#7C3AED]" />
+                <span>Project Teammates</span>
               </h3>
-              <span className="text-xs font-bold text-[#7C3AED] hover:underline cursor-pointer">
-                Directory
+              <span className="text-[10px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full">
+                Bio-XAI Core Team
               </span>
             </div>
 
-            <div className="app-card p-3.5 rounded-2xl flex items-center justify-around border border-purple-100/90">
-              <div className="text-center space-y-1">
-                <div className="w-11 h-11 rounded-full ring-2 ring-[#8B5CF6] p-0.5 mx-auto bg-purple-100 overflow-hidden">
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Clara" alt="Prof. Clara" className="w-full h-full rounded-full object-cover" />
+            <div className="app-card p-4 rounded-2xl grid grid-cols-2 gap-3 border border-purple-100/90 shadow-sm bg-white">
+              <div className="text-center space-y-1.5 p-3 rounded-2xl bg-gradient-to-b from-purple-50/50 to-white border border-purple-100 hover:border-purple-300 transition">
+                <div className="w-14 h-14 rounded-full ring-2 ring-[#7C3AED] p-0.5 mx-auto bg-purple-100 overflow-hidden shadow-md">
+                  <img
+                    src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80"
+                    alt="Vishal"
+                    className="w-full h-full rounded-full object-cover"
+                  />
                 </div>
-                <p className="text-[11px] font-bold text-slate-800 font-heading leading-tight">Prof. Clara</p>
-                <p className="text-[9px] text-slate-400 font-medium">OOP</p>
+                <div>
+                  <p className="text-xs font-black text-slate-900 font-heading leading-tight">Vishal</p>
+                  <p className="text-[10px] text-[#7C3AED] font-bold mt-0.5 uppercase tracking-wider">Team Lead</p>
+                </div>
               </div>
 
-              <div className="text-center space-y-1">
-                <div className="w-11 h-11 rounded-full ring-2 ring-[#8B5CF6] p-0.5 mx-auto bg-purple-100 overflow-hidden">
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alan" alt="Dr. Alan" className="w-full h-full rounded-full object-cover" />
+              <div className="text-center space-y-1.5 p-3 rounded-2xl bg-gradient-to-b from-purple-50/50 to-white border border-purple-100 hover:border-purple-300 transition">
+                <div className="w-14 h-14 rounded-full ring-2 ring-[#7C3AED] p-0.5 mx-auto bg-purple-100 overflow-hidden shadow-md">
+                  <img
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80"
+                    alt="Nithishkumar"
+                    className="w-full h-full rounded-full object-cover"
+                  />
                 </div>
-                <p className="text-[11px] font-bold text-slate-800 font-heading leading-tight">Dr. Alan</p>
-                <p className="text-[9px] text-slate-400 font-medium">DBMS</p>
-              </div>
-
-              <div className="text-center space-y-1">
-                <div className="w-11 h-11 rounded-full ring-2 ring-[#8B5CF6] p-0.5 mx-auto bg-purple-100 overflow-hidden">
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Robert" alt="Prof. Robert" className="w-full h-full rounded-full object-cover" />
+                <div>
+                  <p className="text-xs font-black text-slate-900 font-heading leading-tight">Nithishkumar</p>
+                  <p className="text-[10px] text-[#7C3AED] font-bold mt-0.5 uppercase tracking-wider">Teammate</p>
                 </div>
-                <p className="text-[11px] font-bold text-slate-800 font-heading leading-tight">Prof. Robert</p>
-                <p className="text-[9px] text-slate-400 font-medium">Networks</p>
               </div>
             </div>
           </div>

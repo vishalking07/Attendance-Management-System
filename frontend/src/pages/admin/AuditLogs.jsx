@@ -28,7 +28,7 @@ const AuditLogs = () => {
           {
             block_height: 1421,
             record_id: 'att_421',
-            student_name: 'Sarah Jenkins',
+            student_name: 'Vishal',
             timestamp: '2026-09-10T09:14:22Z',
             verification_method: 'BIOMETRIC_DIRECT',
             previous_hash: '9f8c2b7e1a3d56041289cf7a4b2e819d0c3a6b5e8f1d7a9c2b4e6f8a0d1c3b5',
@@ -38,7 +38,7 @@ const AuditLogs = () => {
           {
             block_height: 1420,
             record_id: 'att_420',
-            student_name: 'Alex Smith',
+            student_name: 'Nithishkumar',
             timestamp: '2026-09-10T09:11:05Z',
             verification_method: 'SMART_PASS_DYNAMIC_QR',
             previous_hash: '4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5',

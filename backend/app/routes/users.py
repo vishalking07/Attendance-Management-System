@@ -78,7 +78,7 @@ async def create_user(
         "role": user_data.role,
         "department_id": user_data.department_id,
         "mentor_id": user_data.mentor_id,
-        "profile_photo": user_data.profile_photo or f"https://api.dicebear.com/7.x/avataaars/svg?seed={user_data.name}",
+        "profile_photo": user_data.profile_photo or "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=250&auto=format&fit=crop&q=80",
         "password_hash": get_password_hash(user_data.password)
     }
 

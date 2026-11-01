@@ -3,6 +3,7 @@ import { Users, Sparkles, Sliders, Brain, Mail, Phone, GraduationCap } from 'luc
 import api from '../../api/client';
 import AICounselingDossierModal from '../../components/AICounselingDossierModal';
 import WhatIfSimulatorModal from '../../components/WhatIfSimulatorModal';
+import { getPersonPhoto } from '../../utils/avatarHelper';
 
 const MenteeList = () => {
   const [mentees, setMentees] = useState([]);
@@ -57,7 +58,7 @@ const MenteeList = () => {
           >
             <div className="flex items-start space-x-3.5">
               <img
-                src={m.profile_photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${m.name}`}
+                src={m.profile_photo?.includes('dicebear') ? getPersonPhoto(m.name) : (m.profile_photo || getPersonPhoto(m.name))}
                 className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl border-2 border-purple-200 p-0.5 bg-purple-50 object-cover flex-shrink-0"
                 alt=""
               />
