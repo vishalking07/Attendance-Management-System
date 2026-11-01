@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
+import MobileBottomNav from '../components/MobileBottomNav';
 import AIChatbotDrawer from '../components/AIChatbotDrawer';
 
 // Pages
@@ -39,20 +40,25 @@ import PerformanceRiskView from '../pages/student/PerformanceRiskView';
 
 // Layout Wrapper with Fit-To-Screen Container matching reference design
 const DashboardLayout = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#ECE6F8] p-2 sm:p-3 lg:p-4 flex items-center justify-center">
+    <div className="h-screen w-screen overflow-hidden bg-[#ECE6F8] p-0 sm:p-2.5 lg:p-4 flex items-center justify-center">
       {/* Central App Card Container with rounded corners, subtle ring & elevation */}
-      <div className="w-full h-full max-w-[1680px] bg-white rounded-[2rem] lg:rounded-[2.5rem] shadow-2xl shadow-purple-950/15 p-2.5 sm:p-3.5 lg:p-4 flex flex-col md:flex-row gap-3 sm:gap-4 lg:gap-5 overflow-hidden border border-purple-100/90 ring-1 ring-purple-900/5">
-        {/* Left Floating Purple Gradient Sidebar */}
-        <Sidebar />
+      <div className="w-full h-full max-w-[1680px] bg-white rounded-none sm:rounded-[2rem] lg:rounded-[2.5rem] shadow-2xl shadow-purple-950/15 p-2 sm:p-3.5 lg:p-4 flex flex-col md:flex-row gap-0 md:gap-3 sm:gap-4 lg:gap-5 overflow-hidden border-0 sm:border border-purple-100/90 ring-0 sm:ring-1 ring-purple-900/5 relative">
+        {/* Left Floating Purple Gradient Sidebar (Desktop & Mobile Drawer) */}
+        <Sidebar isMobileOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
 
         {/* Main Dashboard Area */}
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-          <Navbar />
-          <main className="flex-1 overflow-y-auto px-1 sm:px-2 pt-1 pb-4 custom-scrollbar">
+          <Navbar onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
+          <main className="flex-1 overflow-y-auto px-1.5 sm:px-2 pt-1 pb-20 md:pb-4 custom-scrollbar">
             <Outlet />
           </main>
         </div>
+
+        {/* Sleek Mobile Bottom Navigation Bar */}
+        <MobileBottomNav onOpenMenu={() => setMobileMenuOpen(true)} />
 
         {/* Floating AI Chatbot Assistant */}
         <AIChatbotDrawer />

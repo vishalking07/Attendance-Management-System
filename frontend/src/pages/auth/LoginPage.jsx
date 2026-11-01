@@ -39,12 +39,12 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="h-screen w-screen bg-[#ECE6F8] flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen w-screen bg-[#ECE6F8] flex items-center justify-center p-3 sm:p-4 relative overflow-y-auto custom-scrollbar">
       {/* Background Decorative Soft Purple Blurs */}
       <div className="absolute top-10 left-10 w-96 h-96 bg-purple-300/30 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-300/30 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="w-full max-w-md app-card rounded-[2rem] p-7 sm:p-8 border border-purple-100 shadow-2xl relative z-10 space-y-6 bg-white">
+      <div className="w-full max-w-md app-card rounded-[2rem] p-6 sm:p-8 border border-purple-100 shadow-2xl relative z-10 space-y-5 sm:space-y-6 bg-white my-auto">
         {/* Branding Emblem */}
         <div className="text-center space-y-1.5">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center mx-auto shadow-xl shadow-purple-600/30 mb-3 text-white">

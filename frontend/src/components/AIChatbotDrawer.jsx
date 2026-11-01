@@ -100,7 +100,7 @@ const AIChatbotDrawer = () => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 group flex items-center space-x-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-purple-800 via-[#7C3AED] to-purple-700 text-white shadow-xl shadow-purple-900/30 hover:scale-[1.03] active:scale-95 transition-all duration-200 border border-white/25"
+          className="fixed bottom-16 right-4 sm:bottom-6 sm:right-6 z-40 group flex items-center space-x-2.5 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-purple-800 via-[#7C3AED] to-purple-700 text-white shadow-xl shadow-purple-900/30 hover:scale-[1.03] active:scale-95 transition-all duration-200 border border-white/25"
         >
           <div className="relative">
             <Bot className="w-5 h-5 text-white animate-bounce" />

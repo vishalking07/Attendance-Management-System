@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Search, Bell } from 'lucide-react';
+import { Search, Bell, Menu } from 'lucide-react';
 import api from '../api/client';
 import { getPersonPhoto } from '../utils/avatarHelper';
 
-const Navbar = () => {
+const Navbar = ({ onToggleMobileMenu = () => {} }) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [showNotifs, setShowNotifs] = useState(false);
@@ -34,17 +34,27 @@ const Navbar = () => {
   const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
   return (
-    <header className="h-14 px-1 sm:px-2 flex items-center justify-between z-30 flex-shrink-0 border-b border-purple-50 pb-2 mb-2">
-      {/* Pill Search Input with Keyboard Shortcut */}
-      <div className="relative w-56 sm:w-72 md:w-80">
-        <input
-          type="text"
-          placeholder="Search courses, logs, mentees..."
-          className="w-full bg-[#FAF8FE] border border-purple-100 rounded-full py-2 pl-9 pr-14 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white shadow-sm transition-all"
-        />
-        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-2.5" />
-        <div className="absolute right-2.5 top-2 px-1.5 py-0.5 rounded-md bg-purple-100/70 text-[9px] font-mono text-purple-700 font-bold border border-purple-200/60 hidden sm:block">
-          Ctrl K
+    <header className="h-14 px-1 sm:px-2 flex items-center justify-between z-30 flex-shrink-0 border-b border-purple-50 pb-2 mb-2 gap-2">
+      {/* Left Area: Mobile Hamburger Button + Pill Search Input */}
+      <div className="flex items-center space-x-2 flex-1 sm:flex-initial">
+        <button
+          onClick={onToggleMobileMenu}
+          className="md:hidden w-9 h-9 rounded-full bg-[#FAF8FE] border border-purple-100 flex items-center justify-center text-purple-700 hover:bg-purple-100/60 transition shadow-sm flex-shrink-0"
+          title="Open Menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <div className="relative w-full max-w-[200px] sm:max-w-none sm:w-72 md:w-80">
+          <input
+            type="text"
+            placeholder="Search courses, logs..."
+            className="w-full bg-[#FAF8FE] border border-purple-100 rounded-full py-1.5 sm:py-2 pl-8 sm:pl-9 pr-8 sm:pr-14 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white shadow-sm transition-all"
+          />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2 sm:top-2.5" />
+          <div className="absolute right-2.5 top-2 px-1.5 py-0.5 rounded-md bg-purple-100/70 text-[9px] font-mono text-purple-700 font-bold border border-purple-200/60 hidden sm:block">
+            Ctrl K
+          </div>
         </div>
       </div>
 
